@@ -1,0 +1,14 @@
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: basic-policy
+  namespace: kube-system
+spec:
+  nodeSelector:
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: DoesNotExist
+  interfaces:
+  - ^eth[0-9]+  # Matches eth0, eth1, eth2, etc.
+  externalIPs: true
+  loadBalancerIPs: true
