@@ -1,0 +1,39 @@
+cluster:
+  id: 1
+  name: on-premise
+clustermesh:
+  apiserver:
+    enabled: true
+gatewayAPI:
+  enabled: true
+kubeProxyReplacement: "true"
+ipam:
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4PodCIDRList:
+    - 10.10.0.0/16
+l2announcements:
+  enabled: true
+hubble:
+  enabled: true
+  tls:
+    enabled: true
+    auto:
+      enabled: true
+      method: helm # Switch to 'certmanager' if using cert-manager
+  relay:
+    enabled: true
+    replicas: 1
+    tolerations:
+    - operator: Exists
+  ui:
+    enabled: true
+    replicas: 1
+    service:
+      type: ClusterIP
+    tolerations:
+    - operator: Exists
+nodePort:
+  enabled: true
+operator:
+  replicas: 1
