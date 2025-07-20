@@ -17,14 +17,22 @@ Automated certificate management for Kubernetes, providing SSL/TLS certificates 
 helmfile -f clusters/on-prem/helmfile.yaml -l name=cert-manager apply
 ```
 
-### 2. Apply Cert-Manager Manifests
-```bash
-kubectl apply -f clusters/on-prem/manifests/cert-manager/
-```
+### 2. Verify installation 
+Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubectl/#verify).
+- **Apply the test manifests**:
+  ```bash
+  kubectl apply -f clusters/on-prem/manifests/cert-manager/verify-install.yaml
+  ```
+- **Check the status of the newly created certificate**:
+  ```bash
+  kubectl describe certificate -n cert-manager-test
+  ```
+- **Delete the test manifests**:
+  ```bash
+  kubectl delete -f clusters/on-prem/manifests/cert-manager/verify-install.yaml
+  ```
 
-> **Note:** These manifests configure certificate issuers for Let's Encrypt staging and production environments.
-
-## Certificate Issuer Example
+<!-- ## Certificate Issuer Example
 
 ```yaml
 apiVersion: cert-manager.io/v1
@@ -241,7 +249,7 @@ kubectl get secrets -A | grep tls
 
 # Check secret permissions
 kubectl auth can-i get secrets --as=system:serviceaccount:cert-manager:cert-manager
-```
+``` -->
 
 ## References
 
