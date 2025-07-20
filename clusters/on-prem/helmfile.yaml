@@ -2,3 +2,5 @@ helmfiles:
 - path: ../../apps/cilium/helmfile.yaml
   values:
   - environment: on-prem
+  selectors:
+    - name=cilium

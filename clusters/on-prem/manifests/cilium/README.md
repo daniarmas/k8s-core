@@ -2,57 +2,61 @@
 
 eBPF-based networking for Kubernetes with LoadBalancer IPAM, L2 announcements, and Hubble observability.
 
-## Features
-
-- ✅ **Kube-proxy replacement** - eBPF-based service load balancing
-- ✅ **LoadBalancer IPAM** - Automatic IP allocation for LoadBalancer services
-- ✅ **L2 announcements** - ARP/NDP advertisement for LoadBalancer IPs
-- ✅ **Gateway API support** - Kubernetes Gateway API implementation
-- ✅ **Network policies** - Advanced network security policies
-- ✅ **Hubble** - Network observability and security monitoring
-- ✅ **Cluster mesh** - Multi-cluster networking capability
-
-## Configuration Files
-
-### `helmfile.yaml`
-- Cilium Helm chart configuration
-- Environment-specific values loading
-- Chart version and repository definition
-
-### `values/`
-Environment-specific Cilium configurations:
-- **`on-prem.yaml`** - On-premise settings with LoadBalancer pools and L2 announcements
-
 ## Network Configuration
 
 | Component | Description |
 |-----------|-------------|
 | **Pod CIDR** | `10.10.0.0/16` - IP range for pod networking |
-| **Service CIDR** | `10.43.0.0/16` - IP range for service networking |
 | **LoadBalancer IPAM** | Automatic IP allocation from defined pools |
 | **L2 Announcements** | ARP/NDP advertisement for external connectivity |
 
-### Cilium CLI Installation
+## Installation
+
+### 1. Install Gateway API CRDs
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml
+```
+
+### 2. Install TLSRoute (Optional - Experimental Feature)
+```bash
+# Install TLSRoute CRDs from official repository
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
+```
+
+### 3. Install Cilium CLI
+Follow the [official installation guide](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/).
 
 **macOS:**
 ```bash
-CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
-CLI_ARCH=amd64
-if [ "$(uname -m)" = "arm64" ]; then CLI_ARCH=arm64; fi
-curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-darwin-${CLI_ARCH}.tar.gz{,.sha256sum}
-shasum -a 256 -c cilium-darwin-${CLI_ARCH}.tar.gz.sha256sum
-sudo tar xzvfC cilium-darwin-${CLI_ARCH}.tar.gz /usr/local/bin
-rm cilium-darwin-${CLI_ARCH}.tar.gz{,.sha256sum}
+brew install cilium-cli
 ```
 
-### Hubble CLI Installation
+### 4. Install Hubble CLI
+Follow the [Hubble setup guide](https://docs.cilium.io/en/stable/observability/hubble/setup/).
 
 **macOS:**
 ```bash
 brew install hubble
 ```
 
-### LoadBalancer Service Example
+### 5. Install Cilium via Helmfile
+```bash
+helmfile -f clusters/on-prem/helmfile.yaml -l name=cilium apply
+```
+
+### 6: Apply Cilium manifests
+```bash
+kubectl apply -f clusters/on-prem/manifests/cilium .
+```
+
+> **Note:** These manifests set up LoadBalancer IPAM and create the GatewayClass and Gateway resources.
+
+## Hubble UI
+```bash
+cilium hubble ui
+```
+
+## Gateway API Deployment Example
 
 ```yaml
 apiVersion: apps/v1
@@ -79,20 +83,34 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service
+  name: nginx-service  # ✅ Referenced by HTTPRoute
   namespace: default
-  labels:
-    app: nginx
 spec:
-  type: LoadBalancer
-  loadBalancerClass: io.cilium/l2-announcer
   selector:
-    app: nginx
+    app: nginx  # ✅ This selects pods from nginx-deployment
   ports:
-  - name: http
-    port: 80
+  - port: 80
     targetPort: 80
-    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: nginx-route
+  namespace: default
+spec:
+  parentRefs:
+    - name: cilium-gateway
+  hostnames:
+  - "example.com"  # ✅ Matches requests with this Host header
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: nginx-service
+          port: 80
 ```
 
 ## Verification Commands
@@ -143,11 +161,6 @@ kubectl get networkpolicies -A
 
 # Check policy enforcement
 cilium policy get
-```
-
-**Hubble UI:**
-```bash
-cilium hubble ui
 ```
 
 ## Troubleshooting
