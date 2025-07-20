@@ -11,7 +11,9 @@ This directory contains the configuration for deploying applications to the on-p
 
 ## Installation
 
-### 1. [Install Cilium](./manifests/cilium/README.md)
+### 1. [Cilium](./manifests/cilium/README.md)
+
+### 2. [Cert Manager](./manifests/cert-manager/README.md)
 
 ## Applications Deployed
 
@@ -19,3 +21,6 @@ This directory contains the configuration for deploying applications to the on-p
 - **CNI**: [Cilium](./manifests/cilium/README.md)
 - **LoadBalancer Controller**: [Cilium](./manifests/cilium/README.md)
 - **Gateway API Controller**: [Cilium](./manifests/cilium/README.md)
+  
+### Security & PKI
+- **Certificate Manager**: [Cert-Manager](./manifests/cert-manager/README.md)
