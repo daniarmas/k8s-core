@@ -4,6 +4,12 @@ cluster:
 clustermesh:
   apiserver:
     enabled: true
+# Cilium configuration for routing mode <native>
+# routingMode: native
+# ipv4NativeRoutingCIDR: 172.30.0.0/24  # Replace with your node subnet
+# enableIPv4Masquerade: true
+# enable-ip-masq-agent: false
+# Cilium configuration for routing mode <native>
 gatewayAPI:
   enabled: true
 kubeProxyReplacement: "true"
@@ -12,6 +18,7 @@ ipam:
   operator:
     clusterPoolIPv4PodCIDRList:
     - 10.10.0.0/16
+l7Proxy: true
 l2announcements:
   enabled: true
 hubble:

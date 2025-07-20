@@ -11,33 +11,11 @@ This directory contains the configuration for deploying applications to the on-p
 
 ## Installation
 
-### 1. Deploy Entire Cluster
-```bash
-# From the project root
-helmfile -f clusters/on-prem/helmfile.yaml apply
-```
-
-### 2. Apply the Cilium manifests
-
-```bash
-kubectl apply -f clusters/on-prem/manifests/cilium
-```
+### 1. [Install Cilium](./manifests/cilium/README.md)
 
 ## Applications Deployed
 
-### Core Networking
-- **[Cilium CNI](../../apps/cilium/README.md)** - eBPF-based networking with LoadBalancer IPAM and L2 announcements
-
-<!-- ### Gateway & Ingress
-- **[Gateway API](../../apps/gateway/README.md)** - Kubernetes Gateway API implementation
-  - External traffic management
-  - SSL termination
-
-### Observability
-- **[Monitoring Stack](../../apps/monitoring/README.md)** - Prometheus, Grafana, and alerting
-  - Metrics collection
-  - Dashboards and alerts
-
-### Storage
-- **[Persistent Storage](../../apps/storage/README.md)** - Local path provisioner
-  - Dynamic volume provisioning -->
+### Networking
+- **CNI**: [Cilium](./manifests/cilium/README.md)
+- **LoadBalancer Controller**: [Cilium](./manifests/cilium/README.md)
+- **Gateway API Controller**: [Cilium](./manifests/cilium/README.md)
