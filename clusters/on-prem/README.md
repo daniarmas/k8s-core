@@ -13,6 +13,8 @@ This directory contains the configuration for deploying applications to the on-p
 
 ### 1. [Cilium](./manifests/cilium/README.md)
 
+> ⚠️ **Important:** Cilium gateway depends on cert-manager to issue the SSL certificate. Create the gateway after installing cert-manager.
+
 ### 2. [Cert Manager](./manifests/cert-manager/README.md)
 
 ## Applications Deployed

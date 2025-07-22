@@ -49,7 +49,7 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=cilium apply
 kubectl apply -f clusters/on-prem/manifests/cilium .
 ```
 
-> **Note:** These manifests set up LoadBalancer IPAM and create the GatewayClass and Gateway resources.
+> **Note:** These manifests set up LoadBalancer IPAM and L2 Announcements.
 
 ## Hubble UI
 ```bash
@@ -77,17 +77,24 @@ spec:
       containers:
       - name: nginx
         image: nginx:1.21
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
         ports:
         - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service  # ✅ Referenced by HTTPRoute
+  name: nginx-service
   namespace: default
 spec:
   selector:
-    app: nginx  # ✅ This selects pods from nginx-deployment
+    app: nginx
   ports:
   - port: 80
     targetPort: 80
@@ -100,17 +107,18 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-    - name: cilium-gateway
+  - name: cilium-gateway
+    sectionName: https  # ONLY use HTTPS listener
   hostnames:
-  - "example.com"  # ✅ Matches requests with this Host header
+  - "nginx.home.daniel-enrique.com"
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: nginx-service
-          port: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: nginx-service
+      port: 80
 ```
 
 ## Verification Commands

@@ -7,14 +7,14 @@ resources:
   limits:
     cpu: 200m
     memory: 256Mi
-replicaCount: 3
+replicaCount: 1
 webhook:
-  replicaCount: 3
+  replicaCount: 1
 cainjector:
-  replicaCount: 3
+  replicaCount: 1
 podDisruptionBudget:
   enabled: true
-  minAvailable: 2
+  minAvailable: 1
 affinity:
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:

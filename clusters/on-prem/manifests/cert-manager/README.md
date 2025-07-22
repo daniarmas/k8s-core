@@ -32,71 +32,27 @@ Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubect
   kubectl delete -f clusters/on-prem/manifests/cert-manager/verify-install.yaml
   ```
 
-<!-- ## Certificate Issuer Example
-
-```yaml
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-prod
-spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: admin@example.com
-    privateKeySecretRef:
-      name: letsencrypt-prod
-    solvers:
-    - http01:
-        ingress:
-          class: cilium
-    - dns01:
-        cloudflare:
-          email: admin@example.com
-          apiTokenSecretRef:
-            name: cloudflare-api-token
-            key: api-token
-```
-
-## Certificate Request Example
+## Certificate Issuer Example
 
 ```yaml
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: example-tls
+  name: wildcard-daniel-enrique-cert
   namespace: default
 spec:
-  secretName: example-tls
+  secretName: wildcard-home-tls  # Must match Gateway certificateRefs
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-staging
     kind: ClusterIssuer
   dnsNames:
-  - example.com
-  - www.example.com
-```
-
-## Gateway API Integration
-
-```yaml
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: cilium-gateway
-  namespace: default
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-spec:
-  gatewayClassName: cilium
-  listeners:
-  - name: https
-    port: 443
-    protocol: HTTPS
-    hostname: "*.example.com"
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - name: example-tls
-        namespace: default
+  - "*.home.daniel-enrique.com"  # Must match Gateway hostname
+  - "home.daniel-enrique.com"
+  duration: 2160h  # 90 days
+  renewBefore: 720h  # 30 days
+  privateKey:
+    algorithm: RSA
+    size: 2048
 ```
 
 ## Verification Commands
@@ -249,7 +205,7 @@ kubectl get secrets -A | grep tls
 
 # Check secret permissions
 kubectl auth can-i get secrets --as=system:serviceaccount:cert-manager:cert-manager
-``` -->
+```
 
 ## References
 
