@@ -12,18 +12,7 @@ eBPF-based networking for Kubernetes with LoadBalancer IPAM, L2 announcements, a
 
 ## Installation
 
-### 1. Install Gateway API CRDs
-```bash
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml
-```
-
-### 2. Install TLSRoute (Optional - Experimental Feature)
-```bash
-# Install TLSRoute CRDs from official repository
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
-```
-
-### 3. Install Cilium CLI
+### 1. Install Cilium CLI
 Follow the [official installation guide](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/).
 
 **macOS:**
@@ -31,7 +20,7 @@ Follow the [official installation guide](https://docs.cilium.io/en/stable/gettin
 brew install cilium-cli
 ```
 
-### 4. Install Hubble CLI
+### 2. Install Hubble CLI
 Follow the [Hubble setup guide](https://docs.cilium.io/en/stable/observability/hubble/setup/).
 
 **macOS:**
@@ -39,12 +28,12 @@ Follow the [Hubble setup guide](https://docs.cilium.io/en/stable/observability/h
 brew install hubble
 ```
 
-### 5. Install Cilium via Helmfile
+### 3. Install Cilium via Helmfile
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=cilium apply
 ```
 
-### 6: Apply Cilium manifests
+### 4: Apply Cilium manifests
 ```bash
 kubectl apply -f clusters/on-prem/manifests/cilium .
 ```
@@ -54,71 +43,6 @@ kubectl apply -f clusters/on-prem/manifests/cilium .
 ## Hubble UI
 ```bash
 cilium hubble ui
-```
-
-## Gateway API Deployment Example
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-deployment
-  namespace: default
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:1.21
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "250m"
-            memory: "256Mi"
-        ports:
-        - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-service
-  namespace: default
-spec:
-  selector:
-    app: nginx
-  ports:
-  - port: 80
-    targetPort: 80
-  type: ClusterIP
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: nginx-route
-  namespace: default
-spec:
-  parentRefs:
-  - name: cilium-gateway
-    sectionName: https  # ONLY use HTTPS listener
-  hostnames:
-  - "nginx.home.daniel-enrique.com"
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: nginx-service
-      port: 80
 ```
 
 ## Verification Commands
