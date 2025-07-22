@@ -2,5 +2,9 @@ helmfiles:
 - path: ../../apps/cilium/helmfile.yaml
   values:
   - environment: on-prem
-  selectors:
-    - name=cilium
+  # Remove selectors section
+
+- path: ../../apps/cert-manager/helmfile.yaml
+  values:
+  - environment: on-prem
+  # Remove selectors section

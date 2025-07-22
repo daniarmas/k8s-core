@@ -1,0 +1,28 @@
+crds:
+  enabled: true
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+replicaCount: 1
+webhook:
+  replicaCount: 1
+cainjector:
+  replicaCount: 1
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: cert-manager
+        topologyKey: "kubernetes.io/hostname"
+extraArgs:
+  - --leader-election-lease-duration=15s
+  - --leader-election-renew-deadline=10s
+  - --leader-election-retry-period=2s
