@@ -32,7 +32,7 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=longhorn apply
 kubectl get pods -n longhorn-system -w
 ```
 
-### 3. Access Longhorn UI (Optional)
+### 2. Access Longhorn UI (Optional)
 ```bash
 # Port forward to access Longhorn UI
 kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
