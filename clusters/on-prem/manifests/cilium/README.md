@@ -35,7 +35,7 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=cilium apply
 
 ### 4: Apply Cilium manifests
 ```bash
-kubectl apply -f clusters/on-prem/manifests/cilium .
+kubectl apply -f clusters/on-prem/manifests/cilium/.
 ```
 
 > **Note:** These manifests set up LoadBalancer IPAM and L2 Announcements.
