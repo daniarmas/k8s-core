@@ -13,9 +13,11 @@ This directory contains the configuration for deploying applications to the on-p
 
 ### 1. [Cilium](./manifests/cilium/README.md)
 
-### 2. [Cert Manager](./manifests/cert-manager/README.md)
+### 2. [Longhorn](./manifests/longhorn/README.md)
 
-### 3. [Gateway](./manifests/gateway/README.md)
+### 3. [Cert Manager](./manifests/cert-manager/README.md)
+
+### 4. [Gateway](./manifests/gateway/README.md)
 
 ## Applications Deployed
 
@@ -23,6 +25,9 @@ This directory contains the configuration for deploying applications to the on-p
 - **CNI**: [Cilium](./manifests/cilium/README.md)
 - **LoadBalancer Controller**: [Cilium](./manifests/cilium/README.md)
 - **Gateway API Controller**: [Cilium](./manifests/gateway/README.md)
+
+### Storage
+- **Block Storage**: [Longhorn](./manifests/longhorn/README.md)
   
 ### Security & PKI
 - **Certificate Manager**: [Cert-Manager](./manifests/cert-manager/README.md)
