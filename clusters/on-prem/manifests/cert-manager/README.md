@@ -34,7 +34,8 @@ Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubect
 
 ## Certificate Issuer Example
 
-```yaml
+```bash
+kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -43,7 +44,7 @@ metadata:
 spec:
   secretName: wildcard-home-tls  # Must match Gateway certificateRefs
   issuerRef:
-    name: letsencrypt-staging
+    name: letsencrypt-staging-dns01
     kind: ClusterIssuer
   dnsNames:
   - "*.home.daniel-enrique.com"  # Must match Gateway hostname
@@ -53,6 +54,7 @@ spec:
   privateKey:
     algorithm: RSA
     size: 2048
+EOF
 ```
 
 ## Verification Commands

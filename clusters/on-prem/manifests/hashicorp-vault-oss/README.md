@@ -64,80 +64,6 @@ vault login $(jq -r .root_token vault-keys.json)
 vault status
 ```
 
-## Kubernetes Authentication
-
-This guide sets up Vault login using Kubernetes authentication, allowing applications running in your Kubernetes cluster to authenticate to Vault using their service account tokens. This enables secure, automated access to secrets without manual credential management.
-
-### 1. Enable Kubernetes Authentication
-```bash
-vault auth enable kubernetes
-```
-
-### 2. Create a dedicated service account
-```bash
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: vault-auth
-  namespace: kube-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: vault-tokenreviewer
-rules:
-  - apiGroups: [""]
-    resources: ["serviceaccounts", "secrets"]
-    verbs: ["get", "list"]
-  - apiGroups: ["authentication.k8s.io"]
-    resources: ["tokenreviews"]
-    verbs: ["create"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: vault-tokenreviewer-binding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: vault-tokenreviewer
-subjects:
-  - kind: ServiceAccount
-    name: vault-auth
-    namespace: kube-system
-EOF
-```
-
-### 3. Extract the required data
-
-1. Service account token
-```bash
-TOKEN=$(kubectl -n kube-system get secret \
-  $(kubectl -n kube-system get sa vault-auth -o jsonpath="{.secrets[0].name}") \
-  -o jsonpath="{.data.token}" | base64 --decode)
-```
-
-2. Kubernetes API server endpoint
-```bash
-KUBE_HOST=$(kubectl config view --minify -o jsonpath="{.clusters[0].cluster.server}")
-```
-
-3. Kubernetes CA certificate
-```bash
-kubectl -n kube-system get secret \
-  $(kubectl -n kube-system get sa vault-auth -o jsonpath="{.secrets[0].name}") \
-  -o jsonpath="{.data['ca\.crt']}" | base64 --decode > ca.crt
-```
-
-### 4. Configure Vault Kubernetes Auth
-```bash
-vault write auth/kubernetes/config \
-  token_reviewer_jwt="$TOKEN" \
-  kubernetes_host="$KUBE_HOST" \
-  kubernetes_ca_cert=@ca.crt
-```
-
 ## OIDC Authentication with Google Sign In
 
 This guide sets up Vault login using Google accounts via OIDC, including access via the Vault UI. It works with free Gmail accounts and does **not require** Google Workspace.
@@ -191,7 +117,7 @@ vault write auth/oidc/role/gmail \
   user_claim="email" \
   bound_claims.email="yourgmail@gmail.com" \
   allowed_redirect_uris="http://localhost:8200/ui/vault/auth/oidc/oidc/callback" \
-  oidc_scopes="openid email" \
+  oidc_scopes="openid email profile" \
   oidc_response_mode="form_post" \
   policies="default" \
   ttl="1h"
@@ -204,15 +130,204 @@ kubectl port-forward svc/vault -n vault 8200:8200
 
 ### 7. Select OIDC as the login method and Sign In with Google
 
-## Vault Deployment Example
+## KV Secrets Engine
 
-```yaml
+### 1. Enable KV Secrets Engine
+```bash
+vault secrets enable -path=secret kv-v2
+```
+
+### 2. Verify KV Secrets Engine
+```bash
+# Check if secrets engine is enabled
+vault secrets list
+```
+
+## Kubernetes Authentication
+
+This guide sets up Vault login using Kubernetes authentication, allowing applications running in your Kubernetes cluster to authenticate to Vault using their service account tokens. This enables secure, automated access to secrets without manual credential management.
+
+### 1. Create service account secret token
+```bash
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-k8s-auth-token
+  namespace: vault
+  annotations:
+    kubernetes.io/service-account.name: vault
+type: kubernetes.io/service-account-token
+EOF
+```
+
+### 2 Create ClusterRole and ClusterRoleBinding
+```bash
+kubectl apply -f - <<EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vault-k8s-auth
+rules:
+  - apiGroups: [""]
+    resources: ["serviceaccounts", "pods"]
+    verbs: ["get"]
+  - apiGroups: ["authentication.k8s.io"]
+    resources: ["tokenreviews"]
+    verbs: ["create"]
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["subjectaccessreviews"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vault-k8s-auth
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vault-k8s-auth
+subjects:
+  - kind: ServiceAccount
+    name: vault
+    namespace: vault
+EOF
+```
+
+### 3. Enable Kubernetes Authentication
+```bash
+vault auth enable kubernetes
+```
+
+### 3. Extract the required data
+
+1. Service account token
+```bash
+TOKEN=$(kubectl -n vault get secret vault-k8s-auth-token -o jsonpath="{.data.token}" | base64 --decode)
+```
+
+2. Kubernetes API server endpoint
+```bash
+KUBE_HOST=$(kubectl config view --minify -o jsonpath="{.clusters[0].cluster.server}")
+```
+
+3. Kubernetes CA certificate
+```bash
+kubectl -n vault get secret vault-k8s-auth-token -o jsonpath="{.data['ca\.crt']}" | base64 --decode > ca.crt
+```
+
+### 4. Configure Vault Kubernetes Auth
+```bash
+vault write auth/kubernetes/config \
+  token_reviewer_jwt="$TOKEN" \
+  kubernetes_host="$KUBE_HOST" \
+  kubernetes_ca_cert=@ca.crt
+```
+
+## Test with Vault CLI
+
+### 1. First create the service account with token secret (required for Kubernetes 1.24+)
+```bash
+kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: myapp
+  name: testvaultapp
   namespace: default
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: testvaultapp-token
+  namespace: default
+  annotations:
+    kubernetes.io/service-account.name: testvaultapp
+type: kubernetes.io/service-account-token
+EOF
+```
+
+### 2. Create a policy defining secret access permissions
+```bash
+vault policy write testvaultapp-policy - <<EOF
+path "secret/data/testvaultapp/*" {
+  capabilities = ["read"]
+}
+EOF
+```
+
+### 3. Create a Kubernetes role linking service accounts to the policy
+```bash
+vault write auth/kubernetes/role/testvaultapp \
+    bound_service_account_names=testvaultapp \
+    bound_service_account_namespaces=default \
+    policies=testvaultapp-policy \
+    ttl=24h
+```
+
+### 4. Try a vault cli login
+```bash
+JWT=$(kubectl create token testvaultapp -n default)
+vault write auth/kubernetes/login \
+    role="testvaultapp" \
+    jwt="$JWT"
+```
+
+## Vault Deployment Example
+
+### 1. Create a policy defining secret access permissions
+```bash
+vault policy write testvaultapp-policy - <<EOF
+path "secret/data/testvaultapp/*" {
+  capabilities = ["read"]
+}
+path "secret/metadata/testvaultapp/*" {
+  capabilities = ["read", "list"]
+}
+EOF
+```
+
+### 2. Create a Kubernetes role linking service accounts to the policy
+```bash
+vault write auth/kubernetes/role/testvaultapp \
+    bound_service_account_names=testvaultapp \
+    bound_service_account_namespaces=default \
+    policies=testvaultapp-policy \
+    ttl=24h
+```
+
+### 3. Create example secrets
+```bash
+vault kv put secret/testvaultapp/config \
+    username="myuser" \
+    password="mypassword" \
+    api_key="abc123def456"
+```
+
+### 4. Create the k8s resources
+
+1. First create the service account with token secret (required for Kubernetes 1.24+)
+```bash
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: testvaultapp
+  namespace: default
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: testvaultapp-token
+  namespace: default
+  annotations:
+    kubernetes.io/service-account.name: testvaultapp
+type: kubernetes.io/service-account-token
+EOF
+```
+
+2. Then create the deployment and other resources
+```bash
+kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -229,30 +344,28 @@ spec:
         app: vault-consumer
       annotations:
         vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/role: "myapp"
-        vault.hashicorp.com/agent-inject-secret-config: "secret/data/myapp/config"
+        vault.hashicorp.com/role: "testvaultapp"
+        vault.hashicorp.com/agent-inject-secret-config: "secret/data/testvaultapp/config"
+        vault.hashicorp.com/agent-pre-populate: "false"
+        vault.hashicorp.com/agent-pre-populate-only: "false"
+        vault.hashicorp.com/template-static-secret-render-interval: "30s"
+        vault.hashicorp.com/agent-cache-use-auto-auth-token: "true"
         vault.hashicorp.com/agent-inject-template-config: |
-          {{- with secret "secret/data/myapp/config" -}}
-          DATABASE_URL="postgresql://{{ .Data.data.username }}:{{ .Data.data.password }}@postgres:5432/myapp"
+          {{- with secret "secret/data/testvaultapp/config" -}}
+          DATABASE_URL="postgresql://{{ .Data.data.username }}:{{ .Data.data.password }}@postgres:5432/testvaultapp"
           API_KEY="{{ .Data.data.api_key }}"
           {{- end }}
     spec:
-      serviceAccountName: myapp
+      serviceAccountName: testvaultapp
       containers:
         - name: app
-          image: hashicorp/http-echo
-          args:
-            - "-listen=:80"
-            - "-file=/vault/secrets/config"
+          image: python:3-alpine
           ports:
             - containerPort: 80
-          volumeMounts:
-            - name: vault-secrets
-              mountPath: /vault/secrets
-              readOnly: true
-      volumes:
-        - name: vault-secrets
-          emptyDir: {}
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - "cd /vault/secrets && python -m http.server 80"
 ---
 apiVersion: v1
 kind: Service
@@ -266,6 +379,7 @@ spec:
     - port: 80
       targetPort: 80
   type: ClusterIP
+EOF
 ```
 
 ## Verification Commands

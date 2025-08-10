@@ -23,17 +23,29 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v
 
 ### 3. Install gateway manifests
 ```bash
-kubectl apply -f clusters/on-prem/manifests/gateway .
+kubectl apply -f clusters/on-prem/manifests/gateway/.
 ```
 
 ## Gateway API Deployment Example
 
-```yaml
+```bash
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+  labels:
+    name: test
+    purpose: testing
+    managed-by: kubectl
+  annotations:
+    description: "Namespace for testing"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deployment
-  namespace: default
+  namespace: test
 spec:
   replicas: 2
   selector:
@@ -61,7 +73,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nginx-service
-  namespace: default
+  namespace: test
 spec:
   selector:
     app: nginx
@@ -74,11 +86,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: nginx-route
-  namespace: default
+  namespace: test
 spec:
   parentRefs:
   - name: cilium-gateway
-    sectionName: https  # ONLY use HTTPS listener
+    namespace: default  # ← ADD THIS! Gateway is in default namespace
+    sectionName: https
   hostnames:
   - "nginx.home.daniel-enrique.com"
   rules:
@@ -89,6 +102,7 @@ spec:
     backendRefs:
     - name: nginx-service
       port: 80
+EOF
 ```
 
 ## Verification Commands

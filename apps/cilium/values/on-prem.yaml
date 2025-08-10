@@ -4,14 +4,15 @@ cluster:
 clustermesh:
   apiserver:
     enabled: true
-# Cilium configuration for routing mode <native>
-# routingMode: native
-# ipv4NativeRoutingCIDR: 172.30.0.0/24  # Replace with your node subnet
-# enableIPv4Masquerade: true
-# enable-ip-masq-agent: false
-# Cilium configuration for routing mode <native>
+k8sServiceHostRef:
+  name: kubernetes
+  namespace: default
+k8sClientExponentialBackoff:
+  enabled: true
 gatewayAPI:
   enabled: true
+  gatewayController:
+    enabled: true
 kubeProxyReplacement: "true"
 ipam:
   mode: cluster-pool
