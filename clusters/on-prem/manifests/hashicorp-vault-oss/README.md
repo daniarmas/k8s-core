@@ -110,32 +110,52 @@ vault write auth/oidc/config \
   oidc_client_secret="YOUR_CLIENT_SECRET"
 ```
 
-### 5. Create the policy
+### 5. Create the root permissive policy
 ```bash
-vault policy write gmail-policy - <<EOF   
-path "secret/data/personal/*" {
-  capabilities = ["read", "list"]                                                             
-}                                                           
-path "auth/token/lookup-self" {       
-  capabilities = ["read"]                                                         
-}                                     
-path "auth/token/renew-self" {    
-  capabilities = ["update"]
-}           
+vault policy write root-google-policy - <<EOF   
+# Full access to all secret engines
+path "*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+
+# System backend access (required for UI navigation)
+path "sys/*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+
+# Auth method management
+path "auth/*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+
+# Identity management
+path "identity/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+
+# Token operations
+path "auth/token/*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+
+# Cubbyhole (user-specific secrets)
+path "cubbyhole/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
 EOF
 ```
 
-### 5. Create a Role for Your Google Account
+### 5. Create a Root Role for Your Google Account
 ```bash
-vault write auth/oidc/role/gmail -<<'JSON'
+vault write auth/oidc/role/root -<<'JSON'
 {
   "user_claim": "email",
-  "bound_audiences": "client-secret",
+  "bound_audiences": "client-id",
   "bound_claims": { "email": ["daniel.armas9706@gmail.com"] },
   "allowed_redirect_uris": ["http://localhost:8200/ui/vault/auth/oidc/oidc/callback"],
   "oidc_scopes": ["openid", "email", "profile"],
   "oidc_response_mode": "form_post",
-  "token_policies": ["gmail-policy"],
+  "token_policies": ["root-google-policy"],
   "ttl": "1h",
   "max_ttl": "24h"
 }
