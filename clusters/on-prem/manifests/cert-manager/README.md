@@ -47,8 +47,8 @@ spec:
     name: letsencrypt-staging-dns01
     kind: ClusterIssuer
   dnsNames:
-  - "*.home.daniel-enrique.com"  # Must match Gateway hostname
-  - "home.daniel-enrique.com"
+  - "*.daniel-enrique.com"  # Must match Gateway hostname
+  - "daniel-enrique.com"
   duration: 2160h  # 90 days
   renewBefore: 720h  # 30 days
   privateKey:

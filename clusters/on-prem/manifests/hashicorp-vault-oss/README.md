@@ -80,7 +80,7 @@ This guide sets up Vault login using Google accounts via OIDC, including access 
    - **Application Type**: Web application
    - **Authorized redirect URI**:  
      ```
-     http://localhost:8200/ui/vault/auth/oidc/oidc/callback
+     https://vault.home.daniel-enrique.com/ui/vault/auth/oidc/oidc/callback
      ```
 3. Copy the generated:
    - **Client ID**
@@ -145,7 +145,7 @@ path "cubbyhole/*" {
 EOF
 ```
 
-### 5. Create a Root Role for Your Google Account
+### 6. Create a Root Role for Your Google Account
 ```bash
 vault write auth/oidc/role/root -<<'JSON'
 {
@@ -162,12 +162,10 @@ vault write auth/oidc/role/root -<<'JSON'
 JSON
 ```
 
-### 6. Port forward Vault UI
+### 7. Apply the vault http router
 ```bash
-kubectl port-forward svc/vault -n vault 8200:8200
+kubectl apply -f clusters/on-prem/manifests/hashicorp-vault-oss/01-http-route.yaml
 ```
-
-### 7. Select OIDC as the login method and Sign In with Google
 
 ## KV Secrets Engine
 
