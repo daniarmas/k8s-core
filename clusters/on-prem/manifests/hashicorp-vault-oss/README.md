@@ -107,20 +107,39 @@ vault auth enable oidc
 vault write auth/oidc/config \
   oidc_discovery_url="https://accounts.google.com" \
   oidc_client_id="YOUR_CLIENT_ID" \
-  oidc_client_secret="YOUR_CLIENT_SECRET" \
-  default_role="gmail"
+  oidc_client_secret="YOUR_CLIENT_SECRET"
+```
+
+### 5. Create the policy
+```bash
+vault policy write gmail-policy - <<EOF   
+path "secret/data/personal/*" {
+  capabilities = ["read", "list"]                                                             
+}                                                           
+path "auth/token/lookup-self" {       
+  capabilities = ["read"]                                                         
+}                                     
+path "auth/token/renew-self" {    
+  capabilities = ["update"]
+}           
+EOF
 ```
 
 ### 5. Create a Role for Your Google Account
 ```bash
-vault write auth/oidc/role/gmail \
-  user_claim="email" \
-  bound_claims.email="yourgmail@gmail.com" \
-  allowed_redirect_uris="http://localhost:8200/ui/vault/auth/oidc/oidc/callback" \
-  oidc_scopes="openid email profile" \
-  oidc_response_mode="form_post" \
-  policies="default" \
-  ttl="1h"
+vault write auth/oidc/role/gmail -<<'JSON'
+{
+  "user_claim": "email",
+  "bound_audiences": "client-secret",
+  "bound_claims": { "email": ["daniel.armas9706@gmail.com"] },
+  "allowed_redirect_uris": ["http://localhost:8200/ui/vault/auth/oidc/oidc/callback"],
+  "oidc_scopes": ["openid", "email", "profile"],
+  "oidc_response_mode": "form_post",
+  "token_policies": ["gmail-policy"],
+  "ttl": "1h",
+  "max_ttl": "24h"
+}
+JSON
 ```
 
 ### 6. Port forward Vault UI
