@@ -32,6 +32,35 @@ Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubect
   kubectl delete -f clusters/on-prem/manifests/cert-manager/verify-install.yaml
   ```
 
+## How to export a certificate
+
+### 1. Find the secret name
+```bash
+kubectl get secrets -n <namespace>
+```
+
+### 2. Extract and Decode the Certificate
+```bash
+kubectl get secret wildcard-home-daniel-enrique-tls \
+  -n default -o jsonpath='{.data.tls\.crt}' | base64 -d > fullchain.crt
+```
+
+### 3. Extract and Decode the Private Key
+```bash
+kubectl get secret wildcard-home-daniel-enrique-tls \
+  -n default -o jsonpath='{.data.tls\.key}' | base64 -d > tls.key
+```
+
+## How to import a certificate
+
+### 4. Import back
+```bash
+kubectl create secret tls my-wildcard-tls \
+  --cert=fullchain.crt \
+  --key=tls.key \
+  -n default
+```
+
 ## Certificate Issuer Example
 
 ```bash
@@ -47,8 +76,7 @@ spec:
     name: letsencrypt-staging-dns01
     kind: ClusterIssuer
   dnsNames:
-  - "*.daniel-enrique.com"  # Must match Gateway hostname
-  - "daniel-enrique.com"
+  - "*.home.daniel-enrique.com"  # Must match Gateway hostname
   duration: 2160h  # 90 days
   renewBefore: 720h  # 30 days
   privateKey:

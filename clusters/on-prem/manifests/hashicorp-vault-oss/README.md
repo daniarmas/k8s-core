@@ -9,18 +9,19 @@ HashiCorp Vault is a tool for securely accessing secrets. A secret is anything t
 - **Leasing and Renewal**: All secrets have a lease associated with them for automatic expiration
 - **Revocation**: Built-in revocation support for secrets and encryption keys
 
-## Installation
+## Requirements
 
 ### 1. Install Vault CLI
 Follow the [official installation guide](https://developer.hashicorp.com/vault/install).
 
 **macOS:**
 ```bash
-brew tap hashicorp/tap
 brew install hashicorp/tap/vault
 ```
 
-### 2. Install Vault using Helmfile
+## Installation
+
+### 1. Install Vault
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=vault apply
 ```
@@ -152,7 +153,7 @@ vault write auth/oidc/role/root -<<'JSON'
   "user_claim": "email",
   "bound_audiences": "client-id",
   "bound_claims": { "email": ["daniel.armas9706@gmail.com"] },
-  "allowed_redirect_uris": ["http://localhost:8200/ui/vault/auth/oidc/oidc/callback"],
+  "allowed_redirect_uris": ["https://vault.home.daniel-enrique.com/ui/vault/auth/oidc/oidc/callback"],
   "oidc_scopes": ["openid", "email", "profile"],
   "oidc_response_mode": "form_post",
   "token_policies": ["root-google-policy"],
@@ -164,7 +165,7 @@ JSON
 
 ### 7. Apply the vault http router
 ```bash
-kubectl apply -f clusters/on-prem/manifests/hashicorp-vault-oss/01-http-route.yaml
+kubectl apply -f clusters/on-prem/manifests/gateway/hashicorp-vault-oss/01-http-route.yaml
 ```
 
 ## KV Secrets Engine
@@ -236,7 +237,7 @@ EOF
 vault auth enable kubernetes
 ```
 
-### 3. Extract the required data
+### 4. Extract the required data
 
 1. Service account token
 ```bash
@@ -253,7 +254,7 @@ KUBE_HOST=$(kubectl config view --minify -o jsonpath="{.clusters[0].cluster.serv
 kubectl -n vault get secret vault-k8s-auth-token -o jsonpath="{.data['ca\.crt']}" | base64 --decode > ca.crt
 ```
 
-### 4. Configure Vault Kubernetes Auth
+### 5. Configure Vault Kubernetes Auth
 ```bash
 vault write auth/kubernetes/config \
   token_reviewer_jwt="$TOKEN" \

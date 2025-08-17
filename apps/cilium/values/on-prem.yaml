@@ -4,9 +4,6 @@ cluster:
 clustermesh:
   apiserver:
     enabled: true
-k8sServiceHostRef:
-  name: kubernetes
-  namespace: default
 k8sClientExponentialBackoff:
   enabled: true
 gatewayAPI:

@@ -8,7 +8,7 @@ Gateway API provides a modern, extensible way to manage ingress traffic in Kuber
 - **Traffic Routing**: Advanced HTTP/HTTPS routing with hostname-based routing
 - **HTTP to HTTPS Redirect**: Automatic security enforcement
 
-## Installation
+## Requirements
 
 ### 1. Install Gateway API CRDs
 ```bash
@@ -17,11 +17,12 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/downloa
 
 ### 2. Install TLSRoute (Optional - Experimental Feature)
 ```bash
-# Install TLSRoute CRDs from official repository
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
 ```
 
-### 3. Install gateway manifests
+## Installation
+
+### 1. Install gateway manifests
 ```bash
 kubectl apply -f clusters/on-prem/manifests/gateway/.
 ```
