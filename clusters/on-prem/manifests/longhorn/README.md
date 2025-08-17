@@ -23,21 +23,19 @@ Longhorn is a lightweight, reliable, and feature-rich distributed block storage 
 
 ## Installation
 
-### 1. Install Longhorn using Helmfile
+### 1. Install Longhorn
 ```bash
-# Install Longhorn via helmfile
 helmfile -f clusters/on-prem/helmfile.yaml -l name=longhorn apply
+```
 
-# Wait for deployment to complete
+### 2. Check
+```bash
 kubectl get pods -n longhorn-system -w
 ```
 
-### 2. Access Longhorn UI (Optional)
+### 3. Access Longhorn UI (Optional)
 ```bash
-# Port forward to access Longhorn UI
 kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
-
-# Access UI at: http://localhost:8080
 ```
 
 ## Verification Commands

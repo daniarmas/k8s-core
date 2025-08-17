@@ -1,24 +1,44 @@
 cluster:
   id: 1
   name: on-premise
+
 clustermesh:
   apiserver:
     enabled: true
+
 k8sClientExponentialBackoff:
   enabled: true
+
 gatewayAPI:
   enabled: true
   gatewayController:
     enabled: true
+
 kubeProxyReplacement: "true"
+
+# Enhanced IPAM configuration for HA
 ipam:
   mode: cluster-pool
   operator:
     clusterPoolIPv4PodCIDRList:
     - 10.10.0.0/16
+    clusterPoolIPv4MaskSize: 24
+
+# Enable native routing for better performance
+# ipv4NativeRoutingCIDR: 10.10.0.0/16
+# autoDirectNodeRoutes: true
+# tunnel: disabled
+
 l7Proxy: true
+
+# Enhanced L2 announcements with proper configuration
 l2announcements:
   enabled: true
+  leaseDuration: 15s
+  leaseRenewDeadline: 5s
+  leaseRetryPeriod: 2s
+
+# HA Hubble configuration
 hubble:
   enabled: true
   tls:
@@ -28,17 +48,72 @@ hubble:
       method: helm # Switch to 'certmanager' if using cert-manager
   relay:
     enabled: true
-    replicas: 1
+    replicas: 2 # Increased for HA
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 64Mi
     tolerations:
     - operator: Exists
   ui:
     enabled: true
-    replicas: 1
+    replicas: 2 # Increased for HA
     service:
       type: ClusterIP
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 64Mi
     tolerations:
     - operator: Exists
+
 nodePort:
   enabled: true
+
+# HA operator configuration
 operator:
-  replicas: 1
+  replicas: 3 # Already good for HA
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Additional HA configurations
+rolloutCiliumPods: true
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 2
+
+# Security enhancements
+policyEnforcementMode: "default"
+enableCiliumEndpointSlice: true
+
+# Performance and reliability
+bpf:
+  autoMount:
+    enabled: true
+  masquerade: true
+
+# Enable monitoring
+prometheus:
+  enabled: true
+  port: 9962
+  serviceMonitor:
+    enabled: false # Set to true if using Prometheus Operator
+
+# Graceful termination
+terminationGracePeriodSeconds: 1
+
+# Enable rate limiting to prevent API server overload
+k8sServiceHost: ""
+k8sServicePort: ""
