@@ -26,19 +26,17 @@ brew install hashicorp/tap/vault
 helmfile -f clusters/on-prem/helmfile.yaml -l name=vault apply
 ```
 
-## Setup
-
-### 1. Port-forward Vault (in a new terminal tab or background)
+### 2. Port-forward Vault (in a new terminal tab or background)
 ```bash
 kubectl port-forward -n vault svc/vault 8200:8200
 ```
 
-### 2. Export Vault API address
+### 3. Export Vault API address
 ```bash
 export VAULT_ADDR=http://127.0.0.1:8200
 ```
 
-### 3. Initialize Vault
+### 4. Initialize Vault
 ```bash
 vault operator init \
   -key-shares=5 \
@@ -48,21 +46,53 @@ vault operator init \
 
 > ⚠️ **Critical Security Note**: Store these keys in multiple secure locations. You need at least 3 keys to unseal Vault. Without them, your data will be permanently inaccessible!
 
-### 4. Unseal Vault
+### 5. Unseal Vault
 ```bash
 vault operator unseal "$(jq -r '.unseal_keys_b64[0]' vault-keys.json)"
 vault operator unseal "$(jq -r '.unseal_keys_b64[1]' vault-keys.json)"
 vault operator unseal "$(jq -r '.unseal_keys_b64[2]' vault-keys.json)"
 ```
 
-### 5. Login to Vault CLI using root token
+### 6. Login to Vault CLI using root token
 ```bash
 vault login $(jq -r .root_token vault-keys.json)
 ```
 
-### 6. Verify Vault is unsealed and operational
+### 7. Verify Vault is unsealed and operational
 ```bash
 vault status
+```
+
+## Joing Vault Pods to a Raft Cluster
+
+### 1. Verify the leader pod
+```bash
+kubectl exec -n vault -it vault-0 -- vault status
+```
+
+### 2. List Raft peers (on the leader)
+```bash
+kubectl exec -n vault -it vault-0 -- vault operator raft list-peers
+```
+
+### 3. Join the new pods to Raft
+```bash
+kubectl exec -n vault -it vault-1 -- vault operator raft join http://vault-0.vault-internal:8200
+kubectl exec -n vault -it vault-2 -- vault operator raft join http://vault-0.vault-internal:8200
+```
+
+### 4. Unseal the vault-1 pod
+```bash
+kubectl exec -n vault -it vault-1 -- vault operator unseal "$(jq -r '.unseal_keys_b64[0]' vault-keys.json)"
+kubectl exec -n vault -it vault-1 -- vault operator unseal "$(jq -r '.unseal_keys_b64[1]' vault-keys.json)"
+kubectl exec -n vault -it vault-1 -- vault operator unseal "$(jq -r '.unseal_keys_b64[2]' vault-keys.json)"
+```
+
+### 5. Unseal the vault-2 pod
+```bash
+kubectl exec -n vault -it vault-2 -- vault operator unseal "$(jq -r '.unseal_keys_b64[0]' vault-keys.json)"
+kubectl exec -n vault -it vault-2 -- vault operator unseal "$(jq -r '.unseal_keys_b64[1]' vault-keys.json)"
+kubectl exec -n vault -it vault-2 -- vault operator unseal "$(jq -r '.unseal_keys_b64[2]' vault-keys.json)"
 ```
 
 ## OIDC Authentication with Google Sign In

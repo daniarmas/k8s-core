@@ -278,8 +278,7 @@ injector:
 
   # extraEnvironmentVars is a list of extra environment variables to set in the
   # injector deployment.
-  extraEnvironmentVars: {}
-    # KUBERNETES_SERVICE_HOST: kubernetes.default.svc
+  extraEnvironmentVars: {} # KUBERNETES_SERVICE_HOST: kubernetes.default.svc
 
   # Affinity Settings for injector pods
   # This can either be a multi-line string or YAML matching the PodSpec's affinity field.
@@ -388,11 +387,17 @@ server:
   # Configure the logging format for the Vault server.
   # Supported log formats include: standard, json
   logFormat: ""
-  
+
   # Resource requests, limits, etc. for the server cluster placement. This
   # should map directly to the value of the resources field for a PodSpec.
   # By default no direct resource request is made.
-  resources: {}
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 500m
+    limits:
+      memory: 1Gi
+      cpu: 1000m
   # resources:
   #   requests:
   #     memory: 256Mi
@@ -407,8 +412,7 @@ server:
   # In order to expose the service, use the route section below
   ingress:
     enabled: false
-    labels: {}
-      # traffic: external
+    labels: {} # traffic: external
     annotations: {}
       # |
       # kubernetes.io/ingress.class: nginx
@@ -429,8 +433,8 @@ server:
     # configure the ingress to point to the Vault active service.
     activeService: true
     hosts:
-      - host: chart-example.local
-        paths: []
+    - host: chart-example.local
+      paths: []
     ## Extra paths to prepend to the host configuration. This is useful when working with annotation based services.
     extraPaths: []
     # - path: /*
@@ -444,7 +448,7 @@ server:
     #    hosts:
     #      - chart-example.local
 
-  # hostAliases is a list of aliases to be added to /etc/hosts. Specified as a YAML list.
+    # hostAliases is a list of aliases to be added to /etc/hosts. Specified as a YAML list.
   hostAliases: []
   # - ip: 127.0.0.1
   #   hostnames:
@@ -656,13 +660,13 @@ server:
     #   - protocol: TCP
     #     port: 443
     ingress:
-      - from:
-        - namespaceSelector: {}
-        ports:
-        - port: 8200
-          protocol: TCP
-        - port: 8201
-          protocol: TCP
+    - from:
+      - namespaceSelector: {}
+      ports:
+      - port: 8200
+        protocol: TCP
+      - port: 8201
+        protocol: TCP
 
   # Priority class for server pods
   priorityClassName: ""
@@ -779,7 +783,7 @@ server:
     mountPath: "/vault/data"
     # Name of the storage class to use.  If null it will use the
     # configured default Storage Class.
-    storageClass: "longhorn"
+    storageClass: "local-path"
     # Access Mode of the storage device being used for the PVC
     accessMode: ReadWriteOnce
     # Annotations to apply to the PVC
@@ -808,7 +812,7 @@ server:
     mountPath: "/vault/audit"
     # Name of the storage class to use.  If null it will use the
     # configured default Storage Class.
-    storageClass: "longhorn"
+    storageClass: "local-path"
     # Access Mode of the storage device being used for the PVC
     accessMode: ReadWriteOnce
     # Annotations to apply to the PVC
@@ -832,7 +836,7 @@ server:
   # the "file" backend.  This mode is not highly available and should not be scaled
   # past a single replica.
   standalone:
-    enabled: "-"
+    enabled: false
 
     # config is a raw string of default configuration when using a Stateful
     # deployment. Default is to use a PersistentVolumeClaim mounted at /vault/data
@@ -881,7 +885,7 @@ server:
   # Helm project by default.  It is possible to manually configure Vault to use a
   # different HA backend.
   ha:
-    enabled: false
+    enabled: true
     replicas: 3
 
     # Set the api_addr configuration for Vault HA
@@ -901,9 +905,9 @@ server:
     raft:
 
       # Enables Raft integrated storage
-      enabled: false
+      enabled: true
       # Set the Node Raft ID to the name of the pod
-      setNodeId: false
+      setNodeId: true
 
       # Note: Configuration files are stored in ConfigMaps so sensitive data
       # such as passwords should be either mounted through extraSecretEnvironmentVars
@@ -912,6 +916,7 @@ server:
       # Supported formats are HCL and JSON.
       config: |
         ui = true
+        cluster_name = "on-premise"
 
         listener "tcp" {
           tls_disable = 1
@@ -975,9 +980,9 @@ server:
     disruptionBudget:
       enabled: true
 
-    # maxUnavailable will default to (n/2)-1 where n is the number of
-    # replicas. If you'd like a custom value, you can specify an override here.
-      maxUnavailable: null
+      # maxUnavailable will default to (n/2)-1 where n is the number of
+      # replicas. If you'd like a custom value, you can specify an override here.
+      maxUnavailable: 1
 
   # Definition of the serviceAccount used to run Vault.
   # These options are also used when using an external Vault server to validate
@@ -1200,7 +1205,7 @@ csi:
     #     memory: 256Mi
     #     cpu: 250m
 
-  # Priority class for csi pods
+    # Priority class for csi pods
   priorityClassName: ""
 
   serviceAccount:
@@ -1322,33 +1327,33 @@ serverTelemetry:
     authorization: {}
 
   prometheusRules:
-      # The Prometheus operator *must* be installed before enabling this feature,
-      # if not the chart will fail to install due to missing CustomResourceDefinitions
-      # provided by the operator.
+    # The Prometheus operator *must* be installed before enabling this feature,
+    # if not the chart will fail to install due to missing CustomResourceDefinitions
+    # provided by the operator.
 
-      # Deploy the PrometheusRule custom resource for AlertManager based alerts.
-      # Requires that AlertManager is properly deployed.
-      enabled: false
+    # Deploy the PrometheusRule custom resource for AlertManager based alerts.
+    # Requires that AlertManager is properly deployed.
+    enabled: false
 
-      # Selector labels to add to the PrometheusRules.
-      # When empty, defaults to:
-      #  release: prometheus
-      selectors: {}
+    # Selector labels to add to the PrometheusRules.
+    # When empty, defaults to:
+    #  release: prometheus
+    selectors: {}
 
-      # Some example rules.
-      rules: []
-      #  - alert: vault-HighResponseTime
-      #    annotations:
-      #      message: The response time of Vault is over 500ms on average over the last 5 minutes.
-      #    expr: vault_core_handle_request{quantile="0.5", namespace="mynamespace"} > 500
-      #    for: 5m
-      #    labels:
-      #      severity: warning
-      #  - alert: vault-HighResponseTime
-      #    annotations:
-      #      message: The response time of Vault is over 1s on average over the last 5 minutes.
-      #    expr: vault_core_handle_request{quantile="0.5", namespace="mynamespace"} > 1000
-      #    for: 5m
-      #    labels:
-      #      severity: critical
+    # Some example rules.
+    rules: []
+    #  - alert: vault-HighResponseTime
+    #    annotations:
+    #      message: The response time of Vault is over 500ms on average over the last 5 minutes.
+    #    expr: vault_core_handle_request{quantile="0.5", namespace="mynamespace"} > 500
+    #    for: 5m
+    #    labels:
+    #      severity: warning
+    #  - alert: vault-HighResponseTime
+    #    annotations:
+    #      message: The response time of Vault is over 1s on average over the last 5 minutes.
+    #    expr: vault_core_handle_request{quantile="0.5", namespace="mynamespace"} > 1000
+    #    for: 5m
+    #    labels:
+    #      severity: critical
 
