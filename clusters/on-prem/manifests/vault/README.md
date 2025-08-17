@@ -165,7 +165,7 @@ JSON
 
 ### 7. Apply the vault http router
 ```bash
-kubectl apply -f clusters/on-prem/manifests/gateway/hashicorp-vault-oss/01-http-route.yaml
+kubectl apply -f clusters/on-prem/manifests/gateway/vault/01-http-route.yaml
 ```
 
 ## KV Secrets Engine

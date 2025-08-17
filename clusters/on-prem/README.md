@@ -15,7 +15,7 @@ This directory contains the configuration for deploying applications to the on-p
 
 ### 2. [Longhorn](./manifests/longhorn/README.md)
 
-### 3. [Hashicorp Vault OSS](./manifests/hashicorp-vault-oss/README.md)
+### 3. [Vault](./manifests/vault/README.md)
 
 > ⚠️ **Note**: OIDC Auth with Google Sign needs a fully functional Gateway deployment.
 
