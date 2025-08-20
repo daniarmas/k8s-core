@@ -9,16 +9,6 @@ Longhorn is a lightweight, reliable, and feature-rich distributed block storage 
 helmfile -f clusters/on-prem/helmfile.yaml -l name=longhorn apply
 ```
 
-### 2. Check
-```bash
-kubectl get pods -n longhorn-system -w
-```
-
-### 3. Access Longhorn UI (Optional)
-```bash
-kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
-```
-
 ## Verification Commands
 
 ### Check Longhorn Installation
