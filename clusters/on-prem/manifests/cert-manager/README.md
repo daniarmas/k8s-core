@@ -2,22 +2,14 @@
 
 Automated certificate management for Kubernetes, providing SSL/TLS certificates from various issuers including Let's Encrypt, HashiCorp Vault, and custom CAs.
 
-## Certificate Management
-
-| Component | Description |
-|-----------|-------------|
-| **Certificate Issuers** | Automated certificate provisioning from trusted authorities |
-| **ACME Protocol** | Let's Encrypt integration with HTTP-01 and DNS-01 challenges |
-| **Certificate Lifecycle** | Automatic renewal and rotation of expiring certificates |
-
 ## Installation
 
-### 1. Install Cert-Manager via Helmfile
+### 1. Install Cert-Manager
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=cert-manager apply
 ```
 
-### 2. Verify installation 
+## Verify installation 
 Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubectl/#verify).
 - **Apply the test manifests**:
   ```bash
@@ -55,7 +47,7 @@ kubectl get secret wildcard-home-daniel-enrique-tls \
 
 ### 4. Import back
 ```bash
-kubectl create secret tls my-wildcard-tls \
+kubectl create secret tls wildcard-home-tls \
   --cert=fullchain.crt \
   --key=tls.key \
   -n default

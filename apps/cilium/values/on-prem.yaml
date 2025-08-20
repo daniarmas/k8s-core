@@ -16,29 +16,20 @@ gatewayAPI:
 
 kubeProxyReplacement: "true"
 
-# Enhanced IPAM configuration for HA
 ipam:
   mode: cluster-pool
   operator:
     clusterPoolIPv4PodCIDRList:
     - 10.10.0.0/16
-    clusterPoolIPv4MaskSize: 24
-
-# Enable native routing for better performance
-# ipv4NativeRoutingCIDR: 10.10.0.0/16
-# autoDirectNodeRoutes: true
-# tunnel: disabled
 
 l7Proxy: true
 
-# Enhanced L2 announcements with proper configuration
 l2announcements:
   enabled: true
   leaseDuration: 15s
   leaseRenewDeadline: 5s
   leaseRetryPeriod: 2s
-
-# HA Hubble configuration
+  
 hubble:
   enabled: true
   tls:
@@ -75,8 +66,7 @@ hubble:
 
 nodePort:
   enabled: true
-
-# HA operator configuration
+  
 operator:
   replicas: 3 # Already good for HA
   resources:
@@ -94,26 +84,9 @@ updateStrategy:
   rollingUpdate:
     maxUnavailable: 2
 
-# Security enhancements
-policyEnforcementMode: "default"
-enableCiliumEndpointSlice: true
-
-# Performance and reliability
-bpf:
-  autoMount:
-    enabled: true
-  masquerade: true
-
 # Enable monitoring
 prometheus:
   enabled: true
   port: 9962
   serviceMonitor:
     enabled: false # Set to true if using Prometheus Operator
-
-# Graceful termination
-terminationGracePeriodSeconds: 1
-
-# Enable rate limiting to prevent API server overload
-k8sServiceHost: ""
-k8sServicePort: ""

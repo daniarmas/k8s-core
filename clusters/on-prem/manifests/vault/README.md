@@ -2,13 +2,6 @@
 
 HashiCorp Vault is a tool for securely accessing secrets. A secret is anything that you want to tightly control access to, such as API keys, passwords, certificates, and more. This setup deploys Vault OSS (Open Source) on Kubernetes with persistent storage and high availability options.
 
-## Key Features
-- **Secret Management**: Secure storage and access to tokens, passwords, certificates, encryption keys
-- **Dynamic Secrets**: Generate secrets on-demand for services like databases, cloud platforms
-- **Data Encryption**: Encrypt/decrypt data without storing it and manage encryption keys
-- **Leasing and Renewal**: All secrets have a lease associated with them for automatic expiration
-- **Revocation**: Built-in revocation support for secrets and encryption keys
-
 ## Requirements
 
 ### 1. Install Vault CLI
@@ -72,7 +65,7 @@ kubectl exec -n vault -it vault-0 -- vault status
 
 ### 2. List Raft peers (on the leader)
 ```bash
-kubectl exec -n vault -it vault-0 -- vault operator raft list-peers
+vault operator raft list-peers
 ```
 
 ### 3. Join the new pods to Raft
@@ -101,7 +94,7 @@ This guide sets up Vault login using Google accounts via OIDC, including access 
 
 ### Prerequisites
 
-- Vault is deployed and accessible (e.g., `http://localhost:8200`)
+- Vault is deployed
 - You have access to [Google Cloud Console](https://console.cloud.google.com/)
 
 ### 1. Create an OAuth 2.0 Client in Google Cloud

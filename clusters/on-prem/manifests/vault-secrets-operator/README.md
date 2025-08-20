@@ -2,18 +2,7 @@
 
 The Vault Secrets Operator (VSO) is a Kubernetes operator that manages the lifecycle of secrets from HashiCorp Vault. It automatically synchronizes secrets from Vault into Kubernetes secrets, providing a secure and automated way to manage sensitive data in your cluster.
 
-## Key Features
-
-- **Automatic Secret Synchronization**: Automatically creates and updates Kubernetes secrets from Vault
-- **Multiple Secret Types**: Supports static secrets (KV), dynamic secrets (databases), and PKI certificates
-- **Declarative Management**: Use custom resources to define which secrets to sync
-- **Auto-Refresh**: Automatically refreshes secrets based on configured intervals
-- **Kubernetes Native**: Integrates seamlessly with Kubernetes RBAC and service accounts
-- **Multi-Tenant**: Supports multiple Vault connections and authentication methods per namespace
-- **Rollout Integration**: Automatically restart deployments when secrets change
-
-
-## Setup
+## Installation
 
 ### 1. Install Vault Secrets Operator using Helmfile
 ```bash

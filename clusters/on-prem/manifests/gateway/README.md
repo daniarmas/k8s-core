@@ -2,12 +2,6 @@
 
 Gateway API provides a modern, extensible way to manage ingress traffic in Kubernetes clusters. This setup configures Cilium as the Gateway controller, providing load balancing, TLS termination, and traffic routing capabilities for applications.
 
-## Key Features
-- **Load Balancing**: Automatic IP assignment via Cilium LoadBalancer IPAM
-- **TLS Termination**: SSL certificate management with cert-manager integration
-- **Traffic Routing**: Advanced HTTP/HTTPS routing with hostname-based routing
-- **HTTP to HTTPS Redirect**: Automatic security enforcement
-
 ## Requirements
 
 ### 1. Install Gateway API CRDs
