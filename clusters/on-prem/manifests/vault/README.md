@@ -58,34 +58,29 @@ vault status
 
 ## Joing Vault Pods to a Raft Cluster
 
-### 1. Verify the leader pod
-```bash
-kubectl exec -n vault -it vault-0 -- vault status
-```
-
-### 2. List Raft peers (on the leader)
-```bash
-vault operator raft list-peers
-```
-
-### 3. Join the new pods to Raft
+### 1. Join the new pods to Raft
 ```bash
 kubectl exec -n vault -it vault-1 -- vault operator raft join http://vault-0.vault-internal:8200
 kubectl exec -n vault -it vault-2 -- vault operator raft join http://vault-0.vault-internal:8200
 ```
 
-### 4. Unseal the vault-1 pod
+### 2. Unseal the vault-1 pod
 ```bash
 kubectl exec -n vault -it vault-1 -- vault operator unseal "$(jq -r '.unseal_keys_b64[0]' vault-keys.json)"
 kubectl exec -n vault -it vault-1 -- vault operator unseal "$(jq -r '.unseal_keys_b64[1]' vault-keys.json)"
 kubectl exec -n vault -it vault-1 -- vault operator unseal "$(jq -r '.unseal_keys_b64[2]' vault-keys.json)"
 ```
 
-### 5. Unseal the vault-2 pod
+### 3. Unseal the vault-2 pod
 ```bash
 kubectl exec -n vault -it vault-2 -- vault operator unseal "$(jq -r '.unseal_keys_b64[0]' vault-keys.json)"
 kubectl exec -n vault -it vault-2 -- vault operator unseal "$(jq -r '.unseal_keys_b64[1]' vault-keys.json)"
 kubectl exec -n vault -it vault-2 -- vault operator unseal "$(jq -r '.unseal_keys_b64[2]' vault-keys.json)"
+```
+
+### 4. List Raft peers
+```bash
+vault operator raft list-peers
 ```
 
 ## OIDC Authentication with Google Sign In
