@@ -15,9 +15,15 @@ This directory contains the configuration for deploying applications to the on-p
 
 ### 2. [Longhorn](./manifests/longhorn/README.md)
 
-### 3. [Cert Manager](./manifests/cert-manager/README.md)
+### 3. [Vault](./manifests/vault/README.md)
 
-### 4. [Gateway](./manifests/gateway/README.md)
+> ⚠️ **Note**: OIDC Auth with Google Sign needs a fully functional Gateway deployment.
+
+### 4. [Vault Secrets Operator](./manifests/vault-secrets-operator/README.md)
+
+### 5. [Cert Manager](./manifests/cert-manager/README.md)
+
+### 6. [Gateway](./manifests/gateway/README.md)
 
 ## Applications Deployed
 

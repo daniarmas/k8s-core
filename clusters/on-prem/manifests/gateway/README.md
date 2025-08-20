@@ -2,13 +2,7 @@
 
 Gateway API provides a modern, extensible way to manage ingress traffic in Kubernetes clusters. This setup configures Cilium as the Gateway controller, providing load balancing, TLS termination, and traffic routing capabilities for applications.
 
-## Key Features
-- **Load Balancing**: Automatic IP assignment via Cilium LoadBalancer IPAM
-- **TLS Termination**: SSL certificate management with cert-manager integration
-- **Traffic Routing**: Advanced HTTP/HTTPS routing with hostname-based routing
-- **HTTP to HTTPS Redirect**: Automatic security enforcement
-
-## Installation
+## Requirements
 
 ### 1. Install Gateway API CRDs
 ```bash
@@ -17,23 +11,36 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/downloa
 
 ### 2. Install TLSRoute (Optional - Experimental Feature)
 ```bash
-# Install TLSRoute CRDs from official repository
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
 ```
 
-### 3. Install gateway manifests
+## Installation
+
+### 1. Install gateway manifests
 ```bash
-kubectl apply -f clusters/on-prem/manifests/gateway .
+kubectl apply -f clusters/on-prem/manifests/gateway/.
 ```
 
 ## Gateway API Deployment Example
 
-```yaml
+```bash
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+  labels:
+    name: test
+    purpose: testing
+    managed-by: kubectl
+  annotations:
+    description: "Namespace for testing"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deployment
-  namespace: default
+  namespace: test
 spec:
   replicas: 2
   selector:
@@ -61,7 +68,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nginx-service
-  namespace: default
+  namespace: test
 spec:
   selector:
     app: nginx
@@ -74,11 +81,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: nginx-route
-  namespace: default
+  namespace: test
 spec:
   parentRefs:
   - name: cilium-gateway
-    sectionName: https  # ONLY use HTTPS listener
+    namespace: default  # ← ADD THIS! Gateway is in default namespace
+    sectionName: https
   hostnames:
   - "nginx.home.daniel-enrique.com"
   rules:
@@ -89,6 +97,7 @@ spec:
     backendRefs:
     - name: nginx-service
       port: 80
+EOF
 ```
 
 ## Verification Commands

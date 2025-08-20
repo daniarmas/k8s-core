@@ -1,26 +1,35 @@
 cluster:
   id: 1
   name: on-premise
+
 clustermesh:
   apiserver:
     enabled: true
-# Cilium configuration for routing mode <native>
-# routingMode: native
-# ipv4NativeRoutingCIDR: 172.30.0.0/24  # Replace with your node subnet
-# enableIPv4Masquerade: true
-# enable-ip-masq-agent: false
-# Cilium configuration for routing mode <native>
+
+k8sClientExponentialBackoff:
+  enabled: true
+
 gatewayAPI:
   enabled: true
+  gatewayController:
+    enabled: true
+
 kubeProxyReplacement: "true"
+
 ipam:
   mode: cluster-pool
   operator:
     clusterPoolIPv4PodCIDRList:
     - 10.10.0.0/16
+
 l7Proxy: true
+
 l2announcements:
   enabled: true
+  leaseDuration: 15s
+  leaseRenewDeadline: 5s
+  leaseRetryPeriod: 2s
+  
 hubble:
   enabled: true
   tls:
@@ -30,17 +39,54 @@ hubble:
       method: helm # Switch to 'certmanager' if using cert-manager
   relay:
     enabled: true
-    replicas: 1
+    replicas: 2 # Increased for HA
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 64Mi
     tolerations:
     - operator: Exists
   ui:
     enabled: true
-    replicas: 1
+    replicas: 2 # Increased for HA
     service:
       type: ClusterIP
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 64Mi
     tolerations:
     - operator: Exists
+
 nodePort:
   enabled: true
+  
 operator:
-  replicas: 1
+  replicas: 3 # Already good for HA
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Additional HA configurations
+rolloutCiliumPods: true
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 2
+
+# Enable monitoring
+prometheus:
+  enabled: true
+  port: 9962
+  serviceMonitor:
+    enabled: false # Set to true if using Prometheus Operator

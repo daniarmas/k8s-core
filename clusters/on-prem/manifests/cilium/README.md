@@ -10,7 +10,7 @@ eBPF-based networking for Kubernetes with LoadBalancer IPAM, L2 announcements, a
 | **LoadBalancer IPAM** | Automatic IP allocation from defined pools |
 | **L2 Announcements** | ARP/NDP advertisement for external connectivity |
 
-## Installation
+## Requirements
 
 ### 1. Install Cilium CLI
 Follow the [official installation guide](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/).
@@ -28,7 +28,19 @@ Follow the [Hubble setup guide](https://docs.cilium.io/en/stable/observability/h
 brew install hubble
 ```
 
-### 3. Install Cilium via Helmfile
+## Installation
+
+### 1. Install Gateway API CRDs
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml
+```
+
+### 2. Install TLSRoute (Optional - Experimental Feature)
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
+```
+
+### 3. Install Cilium
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=cilium apply
 ```

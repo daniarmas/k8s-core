@@ -2,22 +2,14 @@
 
 Automated certificate management for Kubernetes, providing SSL/TLS certificates from various issuers including Let's Encrypt, HashiCorp Vault, and custom CAs.
 
-## Certificate Management
-
-| Component | Description |
-|-----------|-------------|
-| **Certificate Issuers** | Automated certificate provisioning from trusted authorities |
-| **ACME Protocol** | Let's Encrypt integration with HTTP-01 and DNS-01 challenges |
-| **Certificate Lifecycle** | Automatic renewal and rotation of expiring certificates |
-
 ## Installation
 
-### 1. Install Cert-Manager via Helmfile
+### 1. Install Cert-Manager
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=cert-manager apply
 ```
 
-### 2. Verify installation 
+## Verify installation 
 Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubectl/#verify).
 - **Apply the test manifests**:
   ```bash
@@ -32,9 +24,39 @@ Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubect
   kubectl delete -f clusters/on-prem/manifests/cert-manager/verify-install.yaml
   ```
 
+## How to export a certificate
+
+### 1. Find the secret name
+```bash
+kubectl get secrets -n <namespace>
+```
+
+### 2. Extract and Decode the Certificate
+```bash
+kubectl get secret wildcard-home-daniel-enrique-tls \
+  -n default -o jsonpath='{.data.tls\.crt}' | base64 -d > fullchain.crt
+```
+
+### 3. Extract and Decode the Private Key
+```bash
+kubectl get secret wildcard-home-daniel-enrique-tls \
+  -n default -o jsonpath='{.data.tls\.key}' | base64 -d > tls.key
+```
+
+## How to import a certificate
+
+### 4. Import back
+```bash
+kubectl create secret tls wildcard-home-tls \
+  --cert=fullchain.crt \
+  --key=tls.key \
+  -n default
+```
+
 ## Certificate Issuer Example
 
-```yaml
+```bash
+kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -43,16 +65,16 @@ metadata:
 spec:
   secretName: wildcard-home-tls  # Must match Gateway certificateRefs
   issuerRef:
-    name: letsencrypt-staging
+    name: letsencrypt-staging-dns01
     kind: ClusterIssuer
   dnsNames:
   - "*.home.daniel-enrique.com"  # Must match Gateway hostname
-  - "home.daniel-enrique.com"
   duration: 2160h  # 90 days
   renewBefore: 720h  # 30 days
   privateKey:
     algorithm: RSA
     size: 2048
+EOF
 ```
 
 ## Verification Commands

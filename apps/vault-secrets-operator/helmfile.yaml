@@ -1,0 +1,21 @@
+repositories:
+  - name: hashicorp
+    url: https://helm.releases.hashicorp.com
+
+releases:
+  - name: vault-secrets-operator
+    namespace: vault-secrets-operator-system
+    createNamespace: true
+    chart: hashicorp/vault-secrets-operator
+    version: ~0.10.0  # Optional: specify version
+    wait: false
+    timeout: 600
+    values:
+      - values/{{ .Values.environment | default .Environment.Name }}.yaml
+    # Alternative if using single values file:
+    # values:
+    #   - vault/vault-operator-values.yaml
+    # labels:
+    #   app: vault-secrets-operator
+    # needs:
+    #   - vault  # Optional: ensures Vault is installed first

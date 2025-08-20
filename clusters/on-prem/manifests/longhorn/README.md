@@ -2,42 +2,21 @@
 
 Longhorn is a lightweight, reliable, and feature-rich distributed block storage system for Kubernetes. It creates distributed replicated block storage using containers and microservices, providing backup, snapshot, and restore capabilities for persistent volumes.
 
-## Key Features
-
-- **Distributed Storage**: Replicated block storage across multiple nodes for high availability
-- **Backup and Restore**: Built-in backup to S3, NFS, or other compatible storage
-- **Volume Snapshots**: Point-in-time snapshots for data protection and recovery
-- **Cross-Node Scheduling**: Volumes can be accessed from any node in the cluster
-- **Web UI**: Intuitive web interface for storage management and monitoring
-- **CSI Driver**: Full Container Storage Interface (CSI) compliance
-- **Disaster Recovery**: Cross-cluster volume replication and recovery
-
-## Prerequisites
-
-- Kubernetes cluster v1.21+
-- Each node requires:
-  - `iscsiadm` installed (for iSCSI support)
-  - `curl`, `findmnt`, `grep`, `awk`, `blkid`, `lsblk` utilities
-  - Root filesystem supports file extents (ext4, XFS)
-- Minimum 4GB RAM per node recommended
-
 ## Installation
 
-### 1. Install Longhorn using Helmfile
+### 1. Install Longhorn
 ```bash
-# Install Longhorn via helmfile
 helmfile -f clusters/on-prem/helmfile.yaml -l name=longhorn apply
+```
 
-# Wait for deployment to complete
+### 2. Check
+```bash
 kubectl get pods -n longhorn-system -w
 ```
 
-### 2. Access Longhorn UI (Optional)
+### 3. Access Longhorn UI (Optional)
 ```bash
-# Port forward to access Longhorn UI
 kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
-
-# Access UI at: http://localhost:8080
 ```
 
 ## Verification Commands

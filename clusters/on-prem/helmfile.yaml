@@ -13,3 +13,13 @@ helmfiles:
   values:
   - environment: on-prem
   # Remove selectors section
+
+- path: ../../apps/vault/helmfile.yaml
+  values:
+  - environment: on-prem
+  # Remove selectors section
+
+- path: ../../apps/vault-secrets-operator/helmfile.yaml
+  values:
+  - environment: on-prem
+  # Remove selectors section
