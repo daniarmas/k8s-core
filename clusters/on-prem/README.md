@@ -4,10 +4,9 @@ This directory contains the configuration for deploying applications to the on-p
 
 ## Prerequisites
 
-- k3s cluster with default CNI (Flannel) and kube-proxy disabled
+- k3s cluster
 - Helmfile installed (`brew install helmfile`)
 - Helm diff plugin installed (`helm plugin install https://github.com/databus23/helm-diff`)
-- kubectl configured to access the cluster
 
 ## Installation
 
@@ -16,8 +15,6 @@ This directory contains the configuration for deploying applications to the on-p
 ### 2. [Longhorn](./manifests/longhorn/README.md)
 
 ### 3. [Vault](./manifests/vault/README.md)
-
-> ⚠️ **Note**: OIDC Auth with Google Sign needs a fully functional Gateway deployment.
 
 ### 4. [Vault Secrets Operator](./manifests/vault-secrets-operator/README.md)
 
@@ -30,10 +27,11 @@ This directory contains the configuration for deploying applications to the on-p
 ### Networking
 - **CNI**: [Cilium](./manifests/cilium/README.md)
 - **LoadBalancer Controller**: [Cilium](./manifests/cilium/README.md)
-- **Gateway API Controller**: [Cilium](./manifests/gateway/README.md)
+- **Gateway API**: [Cilium](./manifests/gateway/README.md)
 
 ### Storage
 - **Block Storage**: [Longhorn](./manifests/longhorn/README.md)
   
 ### Security & PKI
 - **Certificate Manager**: [Cert-Manager](./manifests/cert-manager/README.md)
+- **Secret Managment**: [Vault](./manifests/vault/README.md) & [Vault Secrets Operator](./manifests/vault-secrets-operator/README.md)
