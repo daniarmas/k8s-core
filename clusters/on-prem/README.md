@@ -10,17 +10,19 @@ This directory contains the configuration for deploying applications to the on-p
 
 ## Installation
 
-### 1. [Cilium](./manifests/cilium/README.md)
+### 1. [Cilium](./manifests/01-cilium/README.md)
 
-### 2. [Longhorn](./manifests/longhorn/README.md)
+### 2. [Longhorn](./manifests/02-longhorn/README.md)
 
-### 3. [Vault](./manifests/vault/README.md)
+### 3. [Vault](./manifests/03-vault/README.md)
 
-### 4. [Vault Secrets Operator](./manifests/vault-secrets-operator/README.md)
+### 4. [Vault Secrets Operator](./manifests/04-vault-secrets-operator/README.md)
 
-### 5. [Cert Manager](./manifests/cert-manager/README.md)
+### 5. [Cert Manager](./manifests/05-cert-manager/README.md)
 
-### 6. [Gateway](./manifests/gateway/README.md)
+### 6. [Gateway](./manifests/06-gateway/README.md)
+
+### 7. [Crunchy Posgres Operator](./manifests/07-crunchy-postgres-operator/README.md)
 
 ## Applications Deployed
 

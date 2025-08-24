@@ -19,6 +19,6 @@ helmfiles:
   values:
   - environment: on-prem
 
-- path: ../../apps/postgres-operator/helmfile.yaml
+- path: ../../apps/crunchy-postgres-operator/helmfile.yaml
   values:
   - environment: on-prem

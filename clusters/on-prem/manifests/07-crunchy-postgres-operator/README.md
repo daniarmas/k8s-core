@@ -4,15 +4,15 @@ The Crunchy Postgres Operator automates the deployment and management of Postgre
 
 ## Installation
 
-### 1. Install CloudNative-PG
+### 1. Install the operator
 ```bash
-helmfile -f clusters/on-prem/helmfile.yaml -l name=postgres-operator apply
+helmfile -f clusters/on-prem/helmfile.yaml -l name=crunchy-postgres-operator apply
 ```
 
 ## Setup
 
-### 1. Create the cluster
+### 1. Create the harbor cluster
 ```bash
-kubectl apply -f clusters/on-prem/manifests/postgres-operator/manifests/01-cluster.yaml
+kubectl apply -f clusters/on-prem/manifests/postgres-operator/manifests/01-harbor-cluster.yaml
 ```
 
