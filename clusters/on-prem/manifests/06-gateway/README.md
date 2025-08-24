@@ -18,7 +18,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v
 
 ### 1. Install gateway manifests
 ```bash
-kubectl apply -f clusters/on-prem/manifests/gateway/.
+kubectl apply -f clusters/on-prem/manifests/06-gateway/.
 ```
 
 ## Verification Commands

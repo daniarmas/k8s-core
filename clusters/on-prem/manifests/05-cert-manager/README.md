@@ -9,6 +9,13 @@ Automated certificate management for Kubernetes, providing SSL/TLS certificates 
 helmfile -f clusters/on-prem/helmfile.yaml -l name=cert-manager apply
 ```
 
+## Setup
+
+### 1. Create the dns01 letsencrypt cluster issuer
+```bash
+kubectl apply -f clusters/on-prem/manifests/05-cert-manager/01-cluster-issuer-dns01-letsencrypt.yaml
+```
+
 ## Verify installation 
 Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubectl/#verify).
 - **Apply the test manifests**:
