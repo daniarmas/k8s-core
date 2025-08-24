@@ -2,24 +2,23 @@ helmfiles:
 - path: ../../apps/cilium/helmfile.yaml
   values:
   - environment: on-prem
-  # Remove selectors section
 
 - path: ../../apps/cert-manager/helmfile.yaml
   values:
   - environment: on-prem
-  # Remove selectors section
 
 - path: ../../apps/longhorn/helmfile.yaml
   values:
   - environment: on-prem
-  # Remove selectors section
 
 - path: ../../apps/vault/helmfile.yaml
   values:
   - environment: on-prem
-  # Remove selectors section
 
 - path: ../../apps/vault-secrets-operator/helmfile.yaml
   values:
   - environment: on-prem
-  # Remove selectors section
+
+- path: ../../apps/postgres-operator/helmfile.yaml
+  values:
+  - environment: on-prem

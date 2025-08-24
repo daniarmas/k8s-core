@@ -1,0 +1,148 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgadmin-secret
+  namespace: default
+type: Opaque
+data:
+  # Default credentials: admin@example.com / admin123
+  # Base64 encoded values
+  email: YWRtaW5AZXhhbXBsZS5jb20=
+  password: YWRtaW4xMjM=
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pgadmin4
+  namespace: default
+  labels:
+    app: pgadmin4
+spec:
+  serviceName: pgadmin4-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin4
+  template:
+    metadata:
+      labels:
+        app: pgadmin4
+    spec:
+      containers:
+      - name: pgadmin4
+        image: dpage/pgadmin4:8.12
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: PGADMIN_DEFAULT_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: pgadmin-secret
+              key: email
+        - name: PGADMIN_DEFAULT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pgadmin-secret
+              key: password
+        - name: PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION
+          value: "False"
+        - name: PGADMIN_CONFIG_LOGIN_BANNER
+          value: "PostgreSQL Administration - On-Premise Cluster"
+        volumeMounts:
+        - name: pgadmin-data
+          mountPath: /var/lib/pgadmin
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /misc/ping
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /misc/ping
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      securityContext:
+        runAsUser: 5050
+        runAsGroup: 5050
+        fsGroup: 5050
+  volumeClaimTemplates:
+  - metadata:
+      name: pgadmin-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin4-headless
+  namespace: default
+  labels:
+    app: pgadmin4
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: pgadmin4
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin4-service
+  namespace: default
+  labels:
+    app: pgadmin4
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: pgadmin4
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pgadmin4-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "cilium"
+    cert-manager.io/cluster-issuer: "letsencrypt-dns01"
+spec:
+  tls:
+  - hosts:
+    - pgadmin.home.daniel-enrique.com
+    secretName: pgadmin-tls
+  rules:
+  - host: pgadmin.home.daniel-enrique.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pgadmin4-service
+            port:
+              number: 80
