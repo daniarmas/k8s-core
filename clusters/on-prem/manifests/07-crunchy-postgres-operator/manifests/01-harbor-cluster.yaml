@@ -2,7 +2,7 @@ apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
   name: harbor
-  namespace: postgres-operator
+  namespace: harbor
 spec:
   postgresVersion: 16
   instances:
