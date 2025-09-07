@@ -22,3 +22,6 @@ __pycache__/
 *.iml
 *.sublime-workspace
 *.sublime-project
+
+# macOS files
+.DS_Store
