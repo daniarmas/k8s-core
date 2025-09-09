@@ -1,15 +1,38 @@
----
 apiVersion: v1
-kind: Secret
+kind: ServiceAccount
+metadata:
+  name: crunchy-postgres-pgadmin
+  namespace: harbor
+  labels:
+    app: pgadmin4
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
 metadata:
   name: pgadmin-secret
   namespace: harbor
-type: Opaque
-data:
-  # Default credentials: admin@example.com / admin123
-  # Base64 encoded values
-  email: YWRtaW5AZXhhbXBsZS5jb20=
-  password: YWRtaW4xMjM=
+spec:
+  # Reference to VaultConnection (uses default if not specified)
+  vaultAuthRef: default
+  
+  # Path to secret in Vault
+  mount: secret
+  type: kv-v2
+  path: harbor/crunchy-postgres/pgadmin
+  
+  # Kubernetes secret to create/update
+  destination:
+    name: pgadmin-secret
+    create: true
+    type: Opaque
+  
+  # Refresh the secret every 5 minutes
+  refreshAfter: 5m
+  
+  # Rollout restart deployments when secret changes
+  rolloutRestartTargets:
+    - kind: StatefulSet
+      name: pgadmin4
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -29,6 +52,7 @@ spec:
       labels:
         app: pgadmin4
     spec:
+      serviceAccountName: crunchy-postgres-pgadmin
       containers:
       - name: pgadmin4
         image: dpage/pgadmin4:8.12

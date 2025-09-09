@@ -21,14 +21,27 @@ ipam:
   operator:
     clusterPoolIPv4PodCIDRList:
     - 10.10.0.0/16
+    clusterPoolIPv4MaskSize: 24
 
 l7Proxy: true
 
+# Add proxy configuration to exclude system traffic
+proxy:
+  # Exclude Kubernetes API and system services from L7 inspection
+  prometheusPort: 9964
+  # Exclude system interfaces
+  excludeInterfaces:
+  - cilium_host
+  - cilium_net
+
+# Ensure direct routing for system services
+enableIPv4Masquerade: true
+
+# Exclude kube-system and system services from policy enforcement
+policyEnforcementMode: "default"
+
 l2announcements:
   enabled: true
-  leaseDuration: 15s
-  leaseRenewDeadline: 5s
-  leaseRetryPeriod: 2s
   
 hubble:
   enabled: true
