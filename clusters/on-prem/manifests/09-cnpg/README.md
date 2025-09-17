@@ -13,3 +13,13 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=cnpg apply
 ```bash
 kubectl apply -f clusters/on-prem/manifests/07-cnpg/01-cluster.yaml
 ```
+
+### 3. Create the pgadmin4 vault secret (replace values)
+```bash
+vault kv put secret/harbor/pgadmin4 email="changeme@email.com" password="changeme"
+```
+
+### 4. Apply the pgadmin4 manifests
+```bash
+kubectl apply -f clusters/on-prem/manifests/09-cnpg/02-pgadmin4/.
+```
