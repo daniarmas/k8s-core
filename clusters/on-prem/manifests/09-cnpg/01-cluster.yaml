@@ -12,7 +12,7 @@ spec:
   instances: 3
 
   storage:
-    size: 1Gi
+    size: 2Gi
     storageClass: "longhorn"
 
   # Configure scheduling using CNPG's affinity section
