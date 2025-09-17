@@ -26,3 +26,11 @@ helmfiles:
 - path: ../../apps/cnpg/helmfile.yaml
   values:
   - environment: on-prem
+
+- path: ../../apps/ingress-nginx/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/metallb/helmfile.yaml
+  values:
+  - environment: on-prem

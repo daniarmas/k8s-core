@@ -56,12 +56,13 @@ webhook:
     create: true
     failurePolicy: Fail
   livenessProbe:
-    initialDelaySeconds: 3
+    initialDelaySeconds: 10
   readinessProbe:
-    initialDelaySeconds: 3
+    initialDelaySeconds: 10
   startupProbe:
-    failureThreshold: 6
-    periodSeconds: 5
+    failureThreshold: 30
+    periodSeconds: 10
+    initialDelaySeconds: 30
 
 # Operator configuration.
 config:
@@ -162,7 +163,8 @@ resources: {}
   #   memory: 100Mi
 
 # -- Nodeselector for the operator to be installed.
-nodeSelector: {}
+nodeSelector: 
+  node-role.kubernetes.io/worker: "worker"
 
 # -- Topology Spread Constraints for the operator to be installed.
 topologySpreadConstraints: []

@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: harbor
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: harbor
+  namespace: harbor
+spec:
+  instances: 3
+
+  storage:
+    size: 1Gi
+    storageClass: "longhorn"
+
+  # Configure scheduling using CNPG's affinity section
+  affinity:
+    # Enable built-in pod anti-affinity to spread instances across nodes
+    enablePodAntiAffinity: true
+    topologyKey: kubernetes.io/hostname
+    podAntiAffinityType: preferred
+    
+    # Node selector to run only on worker nodes (match your label value)
+    nodeSelector:
+      node-role.kubernetes.io/worker: "worker"  # Changed from "" to "worker"
+    
+    # Tolerations for the CriticalAddonsOnly taint
+    tolerations:
+    - key: "CriticalAddonsOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoExecute"
+    - key: "CriticalAddonsOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  postgresql:
+    parameters:
+      max_connections: "200"
+    shared_preload_libraries: ["pg_stat_statements"]

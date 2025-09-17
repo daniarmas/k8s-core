@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vault-ingress
+  namespace: vault
+  annotations:
+    # Removed the deprecated annotation
+    # kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  # Use the modern ingressClassName field
+  ingressClassName: nginx
+  
+  tls:
+  - hosts:
+    - vault.home.daniel-enrique.com
+    secretName: wildcard-home-tls  # Make sure this exists in vault namespace
+  rules:
+  - host: vault.home.daniel-enrique.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vault
+            port:
+              number: 8200

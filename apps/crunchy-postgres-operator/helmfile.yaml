@@ -1,8 +1,0 @@
-releases:
-- name: crunchy-postgres-operator
-  namespace: harbor
-  chart: oci://registry.developers.crunchydata.com/crunchydata/pgo
-  version: "5.6.0" # Specify version or use latest
-  createNamespace: true
-  values:
-  - values/{{ .Values.environment | default .Environment.Name }}.yaml
