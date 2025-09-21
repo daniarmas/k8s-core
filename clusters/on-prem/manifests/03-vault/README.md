@@ -181,11 +181,6 @@ vault write auth/oidc/role/root -<<'JSON'
 JSON
 ```
 
-### 7. Apply the vault http router
-```bash
-kubectl apply -f clusters/on-prem/manifests/06-gateway/hashicorp-vault-oss/01-http-route.yaml
-```
-
 ## KV Secrets Engine
 
 ### 1. Enable KV Secrets Engine
