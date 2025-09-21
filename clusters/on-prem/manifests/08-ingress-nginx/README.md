@@ -11,5 +11,5 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=ingress-nginx apply
 
 ### 2. Apply the vault ingress
 ```bash
-kubectl apply -f clusters/on-prem/manifests/06-ingress-nginx/vault/01-ingress.yaml
+kubectl apply -f clusters/on-prem/manifests/08-ingress-nginx/vault/01-ingress.yaml
 ```

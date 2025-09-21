@@ -11,10 +11,10 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=metallb apply
 
 ### 2. Apply the address pool
 ```bash
-kubectl apply -f clusters/on-prem/manifests/06-metallb/01-address-pool.yaml
+kubectl apply -f clusters/on-prem/manifests/07-metallb/01-address-pool.yaml
 ```
 
 ### 3. Apply the L2 Advertisement
 ```bash
-kubectl apply -f clusters/on-prem/manifests/06-metallb/02-l2-advertisement.yaml
+kubectl apply -f clusters/on-prem/manifests/07-metallb/02-l2-advertisement.yaml
 ```

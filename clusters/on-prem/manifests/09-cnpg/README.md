@@ -11,7 +11,7 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=cnpg apply
 
 ### 2. Create the postgresql cluster for harbor
 ```bash
-kubectl apply -f clusters/on-prem/manifests/07-cnpg/01-cluster.yaml
+kubectl apply -f clusters/on-prem/manifests/09-cnpg/01-cluster.yaml
 ```
 
 ### 3. Create the pgadmin4 vault secret (replace values)
