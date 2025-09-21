@@ -14,15 +14,19 @@ This directory contains the configuration for deploying applications to the on-p
 
 ### 2. [Longhorn](./manifests/02-longhorn/README.md)
 
-### 3. [Vault](./manifests/03-vault/README.md)
+### 3. [MetalLB](./manifests/03-metallb/README.md)
 
-### 4. [Vault Secrets Operator](./manifests/04-vault-secrets-operator/README.md)
+### 4. [Ingress Nginx](./manifests/04-ingress-nginx/README.md)
 
-### 5. [Cert Manager](./manifests/05-cert-manager/README.md)
+### 5. [Vault](./manifests/05-vault/README.md)
 
-### 6. [Gateway](./manifests/06-gateway/README.md)
+### 6. [Vault Secrets Operator](./manifests/06-vault-secrets-operator/README.md)
 
-### 7. [Crunchy Posgres Operator](./manifests/07-crunchy-postgres-operator/README.md)
+### 7. [Cert Manager](./manifests/07-cert-manager/README.md)
+
+### 8. [Gateway](./manifests/08-gateway/README.md)
+
+### 7. [Cloud Native PG](./manifests/09-cnpg/README.md)
 
 ## Applications Deployed
 
