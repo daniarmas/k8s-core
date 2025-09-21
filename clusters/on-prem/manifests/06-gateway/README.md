@@ -21,6 +21,11 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v
 kubectl apply -f clusters/on-prem/manifests/06-gateway/.
 ```
 
+### 1. Install routes
+```bash
+kubectl apply -f clusters/on-prem/manifests/06-gateway/routes/.
+```
+
 ## Verification Commands
 
 ### Check Gateway API CRDs Installation
