@@ -13,8 +13,10 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=cert-manager apply
 
 ### 1. Create the dns01 letsencrypt cluster issuer
 ```bash
-kubectl apply -f clusters/on-prem/manifests/05-cert-manager/01-cluster-issuer-dns01-letsencrypt.yaml
+kubectl apply -f clusters/on-prem/manifests/04-cert-manager/02-cluster-issuer-dns01-letsencrypt.yaml
 ```
+
+### 2. Setup the vaul secrets operator for cert manager
 
 ## Verify installation 
 Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubectl/#verify).

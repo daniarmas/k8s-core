@@ -4,12 +4,7 @@ The Vault Secrets Operator (VSO) is a Kubernetes operator that manages the lifec
 
 ## Installation
 
-### 1. Install Vault Secrets Operator using Helmfile
-```bash
-helmfile -f clusters/on-prem/helmfile.yaml -l name=vault-secrets-operator apply
-```
-
-### 2. Create policy for the operator
+### 1. Create policy for the operator
 ```bash
 vault policy write vault-secrets-operator - <<EOF
 # Allow reading secrets
@@ -32,13 +27,18 @@ path "auth/token/renew-self" {
 EOF
 ```
 
-### 3. Create a role for the operator
+### 2. Create a role for the operator
 ```bash
 vault write auth/kubernetes/role/vault-secrets-operator \
     bound_service_account_names=vault-secrets-operator \
     bound_service_account_namespaces=vault-secrets-operator-system \
     policies=vault-secrets-operator \
     ttl=24h
+```
+
+### 3. Install Vault Secrets Operator using Helmfile
+```bash
+helmfile -f clusters/on-prem/helmfile.yaml -l name=vault-secrets-operator apply
 ```
 
 ## References

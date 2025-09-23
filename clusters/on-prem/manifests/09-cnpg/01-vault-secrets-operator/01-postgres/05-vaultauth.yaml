@@ -1,0 +1,19 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: harbor-postgres
+  namespace: harbor
+spec:
+  # Reference to the VaultConnection in the same namespace
+  vaultConnectionRef: default
+
+  # Kubernetes authentication method
+  method: kubernetes
+  mount: kubernetes
+
+  kubernetes:
+    # Role configured in Vault for harbor-postgres
+    role: "harbor-postgres"
+
+    # Service account harbor-postgres uses
+    serviceAccount: "harbor"
