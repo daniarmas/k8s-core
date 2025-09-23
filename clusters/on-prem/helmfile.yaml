@@ -30,3 +30,7 @@ helmfiles:
 - path: ../../apps/metallb/helmfile.yaml
   values:
   - environment: on-prem
+
+- path: ../../apps/ot-redis-operator/helmfile.yaml
+  values:
+  - environment: on-prem

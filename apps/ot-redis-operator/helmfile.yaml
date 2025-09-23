@@ -1,0 +1,12 @@
+repositories:
+  - name: ot-helm
+    url: https://ot-container-kit.github.io/helm-charts/
+
+releases:
+  - name: ot-redis-operator
+    namespace: redis-operator
+    createNamespace: true
+    chart: ot-helm/redis-operator
+    # version: <set to desired version or omit for latest>
+    values:
+      - values/{{ .Values.environment | default .Environment.Name }}.yaml
