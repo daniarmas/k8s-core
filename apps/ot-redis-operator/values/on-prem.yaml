@@ -66,7 +66,7 @@ certificate:
 issuer:
   # Whether to create the issuer or not. You might want to disable this if instead you
   # want to use a ClusterIssuer that you simply want to provide.
-  create: true
+  create: false
   # You can choose Issuer or ClusterIssuer here. The first one is namespaced, the second one
   # is available for global usage.
   kind: Issuer

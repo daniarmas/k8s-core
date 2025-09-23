@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-insight-pvc
+  namespace: redis-operator
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-insight
+  namespace: redis-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-insight
+  template:
+    metadata:
+      labels:
+        app: redis-insight
+    spec:
+      initContainers:
+      - name: fix-permissions
+        image: busybox
+        command: ["sh", "-c", "mkdir -p /data/logs && chmod -R 777 /data"]
+        volumeMounts:
+        - name: redis-insight-data
+          mountPath: /data
+      containers:
+      - name: redis-insight
+        image: redislabs/redisinsight:latest
+        ports:
+        - containerPort: 5540
+        # resources:
+        #   requests:
+        #     cpu: "100m"
+        #     memory: "128Mi"
+        #   limits:
+        #     cpu: "500m"
+        #     memory: "512Mi"
+        livenessProbe:
+          httpGet:
+            path: /api/health/
+            port: 5540
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health/
+            port: 5540
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: redis-insight-data
+          mountPath: /data
+      volumes:
+      - name: redis-insight-data
+        persistentVolumeClaim:
+          claimName: redis-insight-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-insight
+  namespace: redis-operator
+spec:
+  type: ClusterIP
+  selector:
+    app: redis-insight
+  ports:
+  - port: 5540
+    targetPort: 5540
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: redisinsight-ingress
+  namespace: redis-operator
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - redis-insight.home.daniel-enrique.com
+    secretName: wildcard-home-tls  # Make sure this exists in redis-operator namespace
+  rules:
+  - host: redis-insight.home.daniel-enrique.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: redis-insight
+            port:
+              number: 5540
