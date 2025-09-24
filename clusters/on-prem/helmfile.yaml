@@ -34,3 +34,7 @@ helmfiles:
 - path: ../../apps/ot-redis-operator/helmfile.yaml
   values:
   - environment: on-prem
+
+- path: ../../apps/oauth2-proxy/helmfile.yaml
+  values:
+  - environment: on-prem

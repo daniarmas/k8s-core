@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: oauth2-proxy-ingress
+  namespace: oauth2-proxy
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  
+  tls:
+  - hosts:
+    - oauth.home.daniel-enrique.com
+    secretName: wildcard-home-tls  # Make sure this exists in oauth2-proxy namespace
+  rules:
+  - host: oauth.home.daniel-enrique.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: oauth2-proxy
+            port:
+              number: 80

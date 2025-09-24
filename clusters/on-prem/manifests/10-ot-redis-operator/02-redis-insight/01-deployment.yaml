@@ -83,29 +83,3 @@ spec:
   ports:
   - port: 5540
     targetPort: 5540
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: redisinsight-ingress
-  namespace: redis-operator
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-spec:
-  ingressClassName: nginx
-  tls:
-  - hosts:
-    - redis-insight.home.daniel-enrique.com
-    secretName: wildcard-home-tls # Make sure this exists in redis-operator namespace
-  rules:
-  - host: redis-insight.home.daniel-enrique.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: redis-insight
-            port:
-              number: 5540
