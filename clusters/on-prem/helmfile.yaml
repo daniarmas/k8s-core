@@ -38,3 +38,7 @@ helmfiles:
 - path: ../../apps/oauth2-proxy/helmfile.yaml
   values:
   - environment: on-prem
+
+- path: ../../apps/harbor/helmfile.yaml
+  values:
+  - environment: on-prem
