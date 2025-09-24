@@ -4,7 +4,7 @@ OAuth2-Proxy is a reverse proxy that provides authentication using OAuth2 provid
 
 ## Installation
 
-### 2. Create the namespace
+### 1. Create the namespace
 ```bash
 kubectl create namespace oauth2-proxy
 ```
