@@ -28,7 +28,7 @@ spec:
       initContainers:
       - name: fix-permissions
         image: busybox
-        command: ["sh", "-c", "mkdir -p /data/logs && chmod -R 777 /data"]
+        command: [ "sh", "-c", "mkdir -p /data/logs /data/redisinsight && chmod -R 777 /data" ]
         volumeMounts:
         - name: redis-insight-data
           mountPath: /data
@@ -37,13 +37,13 @@ spec:
         image: redislabs/redisinsight:latest
         ports:
         - containerPort: 5540
-        # resources:
-        #   requests:
-        #     cpu: "100m"
-        #     memory: "128Mi"
-        #   limits:
-        #     cpu: "500m"
-        #     memory: "512Mi"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
         livenessProbe:
           httpGet:
             path: /api/health/
@@ -67,6 +67,9 @@ spec:
       - name: redis-insight-data
         persistentVolumeClaim:
           claimName: redis-insight-pvc
+      - name: ri-connections
+        configMap:
+          name: redisinsight-connections
 ---
 apiVersion: v1
 kind: Service
@@ -94,7 +97,7 @@ spec:
   tls:
   - hosts:
     - redis-insight.home.daniel-enrique.com
-    secretName: wildcard-home-tls  # Make sure this exists in redis-operator namespace
+    secretName: wildcard-home-tls # Make sure this exists in redis-operator namespace
   rules:
   - host: redis-insight.home.daniel-enrique.com
     http:

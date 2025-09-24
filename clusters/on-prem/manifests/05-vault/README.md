@@ -64,21 +64,17 @@ kubectl exec -n vault -it vault-1 -- vault operator raft join http://vault-0.vau
 kubectl exec -n vault -it vault-2 -- vault operator raft join http://vault-0.vault-internal:8200
 ```
 
-### 2. Unseal the vault-1 pod
+### 2. Unseal the vault-1 and vault-2 pods
 ```bash
 kubectl exec -n vault -it vault-1 -- vault operator unseal "$(jq -r '.unseal_keys_b64[0]' vault-keys.json)"
 kubectl exec -n vault -it vault-1 -- vault operator unseal "$(jq -r '.unseal_keys_b64[1]' vault-keys.json)"
 kubectl exec -n vault -it vault-1 -- vault operator unseal "$(jq -r '.unseal_keys_b64[2]' vault-keys.json)"
-```
-
-### 3. Unseal the vault-2 pod
-```bash
 kubectl exec -n vault -it vault-2 -- vault operator unseal "$(jq -r '.unseal_keys_b64[0]' vault-keys.json)"
 kubectl exec -n vault -it vault-2 -- vault operator unseal "$(jq -r '.unseal_keys_b64[1]' vault-keys.json)"
 kubectl exec -n vault -it vault-2 -- vault operator unseal "$(jq -r '.unseal_keys_b64[2]' vault-keys.json)"
 ```
 
-### 4. List Raft peers
+### 3. List Raft peers
 ```bash
 vault operator raft list-peers
 ```
