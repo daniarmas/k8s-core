@@ -1,0 +1,10 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: default
+  namespace: harbor
+spec:
+  # Address of your Vault server
+  address: "http://vault.vault.svc.cluster.local:8200"
+  # Skip TLS verification (set to true if using HTTP or self-signed certs)
+  skipTLSVerify: true

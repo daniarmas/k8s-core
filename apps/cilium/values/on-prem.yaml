@@ -1,6 +1,9 @@
 cluster:
   id: 1
   name: on-premise
+  serviceCIDR: 10.43.0.0/16
+
+k8sServicePort: 6443
 
 clustermesh:
   apiserver:
@@ -10,9 +13,9 @@ k8sClientExponentialBackoff:
   enabled: true
 
 gatewayAPI:
-  enabled: true
+  enabled: false
   gatewayController:
-    enabled: true
+    enabled: false
 
 kubeProxyReplacement: "true"
 
@@ -21,14 +24,33 @@ ipam:
   operator:
     clusterPoolIPv4PodCIDRList:
     - 10.10.0.0/16
+    clusterPoolIPv4MaskSize: 24
 
 l7Proxy: true
 
+# Add proxy configuration to exclude system traffic
+proxy:
+  # Exclude Kubernetes API and system services from L7 inspection
+  prometheusPort: 9964
+  # Exclude system interfaces
+  excludeInterfaces:
+  - cilium_host
+  - cilium_net
+  - lxc+
+  - docker+
+  # Exclude service CIDR from L7 processing
+  excludeCIDRs:
+  - 10.43.0.0/16    # Service CIDR (includes Kubernetes API)
+  - 127.0.0.0/8     # Loopback
+
+# Ensure direct routing for system services
+enableIPv4Masquerade: true
+
+# Exclude kube-system and system services from policy enforcement
+policyEnforcementMode: "default"
+
 l2announcements:
   enabled: true
-  leaseDuration: 15s
-  leaseRenewDeadline: 5s
-  leaseRetryPeriod: 2s
   
 hubble:
   enabled: true

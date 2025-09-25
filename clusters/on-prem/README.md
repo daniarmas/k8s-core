@@ -10,17 +10,23 @@ This directory contains the configuration for deploying applications to the on-p
 
 ## Installation
 
-### 1. [Cilium](./manifests/cilium/README.md)
+### 1. [Cilium](./manifests/01-cilium/README.md)
 
-### 2. [Longhorn](./manifests/longhorn/README.md)
+### 2. [Longhorn](./manifests/02-longhorn/README.md)
 
-### 3. [Vault](./manifests/vault/README.md)
+### 3. [MetalLB](./manifests/03-metallb/README.md)
 
-### 4. [Vault Secrets Operator](./manifests/vault-secrets-operator/README.md)
+### 4. [Ingress Nginx](./manifests/04-ingress-nginx/README.md)
 
-### 5. [Cert Manager](./manifests/cert-manager/README.md)
+### 5. [Vault](./manifests/05-vault/README.md)
 
-### 6. [Gateway](./manifests/gateway/README.md)
+### 6. [Vault Secrets Operator](./manifests/06-vault-secrets-operator/README.md)
+
+### 7. [Cert Manager](./manifests/07-cert-manager/README.md)
+
+### 8. [Gateway](./manifests/08-gateway/README.md)
+
+### 7. [Cloud Native PG](./manifests/09-cnpg/README.md)
 
 ## Applications Deployed
 

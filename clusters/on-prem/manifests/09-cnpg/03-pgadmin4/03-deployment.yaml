@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: harbor-pgadmin4
+  namespace: harbor
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin4
+  namespace: harbor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin4
+  template:
+    metadata:
+      labels:
+        app: pgadmin4
+    spec:
+      serviceAccountName: harbor-pgadmin4
+      # Add this before containers:
+      initContainers:
+      - name: fix-permissions
+        image: busybox:1.36
+        command: ['sh', '-c']
+        args:
+        - |
+          chown -R 5050:5050 /var/lib/pgadmin
+          chmod -R 755 /var/lib/pgadmin
+        securityContext:
+          runAsUser: 0  # Run as root to fix permissions
+        volumeMounts:
+        - name: pgadmin4-data
+          mountPath: /var/lib/pgadmin
+      containers:
+      - name: pgadmin4
+        image: dpage/pgadmin4:9.8
+        ports:
+        - containerPort: 80
+        env:
+        - name: PGADMIN_DEFAULT_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: pgadmin4
+              key: email
+        - name: PGADMIN_DEFAULT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pgadmin4
+              key: password
+        # Mount persistent volume
+        volumeMounts:
+        - name: pgadmin4-data
+          mountPath: /var/lib/pgadmin
+        readinessProbe:
+          httpGet:
+            path: /misc/ping
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /misc/ping
+            port: 80
+          initialDelaySeconds: 60
+          periodSeconds: 30
+      volumes:
+      - name: pgadmin4-data
+        persistentVolumeClaim:
+          claimName: pgadmin4-data

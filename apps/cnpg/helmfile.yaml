@@ -1,0 +1,11 @@
+repositories:
+- name: cnpg
+  url: https://cloudnative-pg.github.io/charts
+
+releases:
+- name: cnpg
+  namespace: cnpg-system
+  createNamespace: true
+  chart: cnpg/cloudnative-pg
+  values:
+  - values/{{ .Values.environment | default .Environment.Name }}.yaml
