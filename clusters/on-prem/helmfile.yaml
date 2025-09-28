@@ -42,3 +42,11 @@ helmfiles:
 - path: ../../apps/harbor/helmfile.yaml
   values:
   - environment: on-prem
+
+- path: ../../apps/mimir/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/prometheus/helmfile.yaml
+  values:
+  - environment: on-prem
