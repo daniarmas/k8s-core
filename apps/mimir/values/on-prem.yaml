@@ -351,6 +351,10 @@ mimir:
       # Avoid caching results newer than 10m because some samples can be delayed
       # This presents caching incomplete results
       max_cache_freshness: 10m
+      # Increase per-tenant limits for Prometheus workload
+      max_global_series_per_user: 1000000  # Increase from default 150000
+      ingestion_rate: 50000                 # Increase from default 10000 samples/s
+      ingestion_burst_size: 1000000         # Increase from default 200000
 
     memberlist:
       abort_if_cluster_join_fails: false
