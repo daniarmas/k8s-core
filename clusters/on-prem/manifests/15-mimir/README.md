@@ -4,12 +4,12 @@ Grafana Mimir is an open source, horizontally scalable, and highly available lon
 
 ## Installation
 
-### 1. Create the namespace
+### 1. Create the vault secret
 ```bash
-kubectl create namespace observability
+vault kv put secret/mimir bucket_name="app" endpoint="changeme" access_key_id="changeme" secret_access_key="changeme"
 ```
 
-### 2. Install the operator
+### 2. Install the Grafana Mimir
 ```bash
-helmfile -f clusters/on-prem/helmfile.yaml -l name=harbor apply
+helmfile -f clusters/on-prem/helmfile.yaml -l name=mimir apply
 ```

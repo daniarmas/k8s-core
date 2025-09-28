@@ -5,7 +5,6 @@
 # production load.
 # To configure the resources for higher scale, refer to the small.yaml file.
 # For production load with high availability, refer to the large.yaml values file.
-
 # Note: The values in this file are not backward compatible. Copying and pasting the values is discouraged, but if you do so,
 # make sure to use the values.yaml from the branch or tag that matches the mimir-distributed Helm chart version that you
 # want to install. You also can see values.yaml for a specific version by running
@@ -59,8 +58,9 @@ global:
   # extraEnvFrom:
   #   - secretRef:
   #       name: mysecret
-  extraEnvFrom: []
-
+  extraEnvFrom:
+  - secretRef:
+      name: mimir
   # -- Common volumes to add to all pods directly managed by this chart.
   # scope: admin-api, alertmanager, compactor, continuous-test, distributor, gateway, graphite-proxy, ingester, memcached, nginx, overrides-exporter, querier, query-frontend, query-scheduler, ruler, store-gateway, smoke-test, tokengen, federation-frontend
   extraVolumes: []
@@ -462,7 +462,38 @@ mimir:
   #         secret_access_key: "${AWS_SECRET_ACCESS_KEY}" # This is a secret injected via an environment variable
   #         http:
   #           insecure_skip_verify: true
-  structuredConfig: {}
+  structuredConfig:
+    common:
+      storage:
+        backend: s3
+        s3:
+          bucket_name: "${common_storage_bucket_name}"
+          endpoint: "${endpoint}"
+          region: "nyc3"
+          access_key_id: "${access_key_id}"
+          secret_access_key: "${secret_access_key}"
+          http:
+            insecure_skip_verify: true
+    alertmanager_storage:
+      backend: s3
+      s3:
+        bucket_name: "${alertmanager_storage_bucket_name}"
+        endpoint: "${endpoint}"
+        region: "nyc3"
+        access_key_id: "${access_key_id}"
+        secret_access_key: "${secret_access_key}"
+        http:
+          insecure_skip_verify: true
+    ruler_storage:
+      backend: s3
+      s3:
+        bucket_name: "${ruler_storage_bucket_name}"
+        endpoint: "${endpoint}"
+        region: "nyc3"
+        access_key_id: "${access_key_id}"
+        secret_access_key: "${secret_access_key}"
+        http:
+          insecure_skip_verify: true
 
 # -- runtimeConfig provides a reloadable runtime configuration. Changing the runtimeConfig doesn't require a restart of all components.
 # For more infromation see https://grafana.com/docs/mimir/latest/configure/about-runtime-configuration/
@@ -676,7 +707,6 @@ alertmanager:
     #
     accessModes:
     - ReadWriteOnce
-
     # Alertmanager data Persistent Volume size
     #
     size: 1Gi
@@ -1078,7 +1108,6 @@ ingester:
     # Ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
     accessModes:
     - ReadWriteOnce
-
     # Ingester data Persistent Volume size
     size: 2Gi
 
@@ -2240,7 +2269,6 @@ store_gateway:
     #
     accessModes:
     - ReadWriteOnce
-
     # Store-gateway data Persistent Volume size
     #
     size: 2Gi
@@ -2483,7 +2511,6 @@ compactor:
     #
     accessModes:
     - ReadWriteOnce
-
     # compactor data Persistent Volume size
     #
     size: 2Gi
@@ -3024,7 +3051,7 @@ rollout_operator:
     allowPrivilegeEscalation: false
 
 minio:
-  enabled: true
+  enabled: false
   mode: standalone
   rootUser: grafana-mimir
   buckets:
