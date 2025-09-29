@@ -478,6 +478,41 @@ mimir:
           secret_access_key: "${secret_access_key}"
           http:
             insecure_skip_verify: true
+    compactor:
+      # Basic compaction settings
+      compaction_interval: 30m
+      deletion_delay: 2h
+      first_level_compaction_wait_period: 25m
+
+    # Configure retention via limits (this is the correct way in Mimir 2.17.0)
+    limits:
+      # Global retention period - 30 days for all data
+      compactor_blocks_retention_period: 720h  # 30 days
+
+      # Query limits
+      max_total_query_length: 8760h  # Allow querying up to 1 year back
+      max_query_parallelism: 240
+
+      # Enhanced limits for your workload
+      max_global_series_per_user: 1000000
+      ingestion_rate: 50000
+      ingestion_burst_size: 1000000
+
+    # Block storage configuration
+    blocks_storage:
+      tsdb:
+        # Block range for raw data
+        block_ranges_period: ["2h0m0s"]  # Correct format for DurationList
+        # Head compaction interval
+        head_compaction_interval: 15m
+        # WAL replay concurrency
+        wal_replay_concurrency: 3
+
+      bucket_store:
+        # Sync directory for block operations
+        sync_dir: /data/tsdb-sync
+        # Configure block discovery
+        sync_interval: 15m
     alertmanager_storage:
       backend: s3
       s3:
