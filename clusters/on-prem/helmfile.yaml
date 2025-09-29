@@ -50,3 +50,11 @@ helmfiles:
 - path: ../../apps/prometheus/helmfile.yaml
   values:
   - environment: on-prem
+
+- path: ../../apps/prometheus-crds/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/grafana/helmfile.yaml
+  values:
+  - environment: on-prem

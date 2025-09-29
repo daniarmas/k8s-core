@@ -31,13 +31,13 @@ commonLabels: {}
 ## Install Prometheus Operator CRDs
 ##
 crds:
-  enabled: true
+  enabled: false
   ## The CRD upgrade job mitigates the limitation of helm not being able to upgrade CRDs.
   ## The job will apply the CRDs to the cluster before the operator is deployed, using helm hooks.
   ## It deploy a corresponding clusterrole, clusterrolebinding and serviceaccount to apply the CRDs.
   ## This feature is in preview, off by default and may change in the future.
   upgradeJob:
-    enabled: false
+    enabled: true
     forceConflicts: false
     image:
       busybox:
@@ -421,7 +421,6 @@ alertmanager:
     ##
     policyTypes:
     - Ingress
-
     # -- Gateway (formerly ingress controller) configuration
     ##
     gateway:
@@ -661,7 +660,6 @@ alertmanager:
       - path:
           type: PathPrefix
           value: /
-
       ## Filters define the filters that are applied to requests that match this rule.
       filters: []
 
@@ -3772,7 +3770,6 @@ prometheus:
       - path:
           type: PathPrefix
           value: /
-
       ## Filters define the filters that are applied to requests that match this rule.
       filters: []
 
@@ -4971,7 +4968,6 @@ thanosRuler:
       - path:
           type: PathPrefix
           value: /
-
       ## Filters define the filters that are applied to requests that match this rule.
       filters: []
 

@@ -713,7 +713,7 @@ alertmanager:
     - ReadWriteOnce
     # Alertmanager data Persistent Volume size
     #
-    size: 1Gi
+    size: 5Gi
 
     # Subdirectory of Alertmanager data Persistent Volume to mount
     # Useful if the volume's root directory is not empty

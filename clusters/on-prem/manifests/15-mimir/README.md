@@ -6,7 +6,13 @@ Grafana Mimir is an open source, horizontally scalable, and highly available lon
 
 ### 1. Create the vault secret
 ```bash
-vault kv put secret/mimir bucket_name="app" endpoint="changeme" access_key_id="changeme" secret_access_key="changeme"
+vault kv put secret/mimir \
+  common_storage_bucket_name="changeme" \
+  alertmanager_storage_bucket_name="changeme" \
+  ruler_storage_bucket_name="changeme" \
+  endpoint="nyc3.digitaloceanspaces.com" \
+  access_key_id="changeme" \
+  secret_access_key="changeme"
 ```
 
 ### 2. Install the Grafana Mimir
