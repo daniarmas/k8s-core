@@ -478,6 +478,41 @@ mimir:
           secret_access_key: "${secret_access_key}"
           http:
             insecure_skip_verify: true
+    compactor:
+      # Basic compaction settings
+      compaction_interval: 30m
+      deletion_delay: 2h
+      first_level_compaction_wait_period: 25m
+
+    # Configure retention via limits (this is the correct way in Mimir 2.17.0)
+    limits:
+      # Global retention period - 30 days for all data
+      compactor_blocks_retention_period: 720h  # 30 days
+
+      # Query limits
+      max_total_query_length: 8760h  # Allow querying up to 1 year back
+      max_query_parallelism: 240
+
+    # Block storage configuration
+    blocks_storage:
+      tsdb:
+        # Reduce from 15m to 5m - compacts to S3 more frequently
+        head_compaction_interval: 5m
+        # Keep 1h block ranges (optimal)
+        block_ranges_period: ["1h0m0s"]
+        # WAL replay concurrency
+        wal_replay_concurrency: 3
+        # Additional TSDB settings for disk usage optimization
+        head_compaction_concurrency: 1
+        head_compaction_idle_timeout: 1h
+        # Additional WAL tuning
+        wal_compression_enabled: true
+
+      bucket_store:
+        # Sync directory for block operations
+        sync_dir: /data/tsdb-sync
+        # Configure block discovery
+        sync_interval: 15m
     alertmanager_storage:
       backend: s3
       s3:
@@ -713,7 +748,7 @@ alertmanager:
     - ReadWriteOnce
     # Alertmanager data Persistent Volume size
     #
-    size: 1Gi
+    size: 5Gi
 
     # Subdirectory of Alertmanager data Persistent Volume to mount
     # Useful if the volume's root directory is not empty
@@ -1113,7 +1148,7 @@ ingester:
     accessModes:
     - ReadWriteOnce
     # Ingester data Persistent Volume size
-    size: 2Gi
+    size: 5Gi
 
     # Subdirectory of Ingester data Persistent Volume to mount
     # Useful if the volume's root directory is not empty
@@ -2275,7 +2310,7 @@ store_gateway:
     - ReadWriteOnce
     # Store-gateway data Persistent Volume size
     #
-    size: 2Gi
+    size: 5Gi
 
     # Subdirectory of Store-gateway data Persistent Volume to mount
     # Useful if the volume's root directory is not empty
@@ -2517,7 +2552,7 @@ compactor:
     - ReadWriteOnce
     # compactor data Persistent Volume size
     #
-    size: 2Gi
+    size: 5Gi
 
     # Subdirectory of compactor data Persistent Volume to mount
     # Useful if the volume's root directory is not empty
