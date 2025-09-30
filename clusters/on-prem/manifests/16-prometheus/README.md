@@ -4,6 +4,11 @@ Prometheus is an open-source monitoring and alerting toolkit designed for reliab
 
 ## Installation
 
+### 1. Install Prometheus CRDs
+```bash
+helmfile -f clusters/on-prem/helmfile.yaml -l name=prometheus-crds apply
+```
+
 ### 2. Install Prometheus
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=prometheus apply

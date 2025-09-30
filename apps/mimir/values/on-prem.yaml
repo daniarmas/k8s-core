@@ -493,20 +493,20 @@ mimir:
       max_total_query_length: 8760h  # Allow querying up to 1 year back
       max_query_parallelism: 240
 
-      # Enhanced limits for your workload
-      max_global_series_per_user: 1000000
-      ingestion_rate: 50000
-      ingestion_burst_size: 1000000
-
     # Block storage configuration
     blocks_storage:
       tsdb:
-        # Block range for raw data
-        block_ranges_period: ["2h0m0s"]  # Correct format for DurationList
-        # Head compaction interval
-        head_compaction_interval: 15m
+        # Reduce from 15m to 5m - compacts to S3 more frequently
+        head_compaction_interval: 5m
+        # Keep 1h block ranges (optimal)
+        block_ranges_period: ["1h0m0s"]
         # WAL replay concurrency
         wal_replay_concurrency: 3
+        # Additional TSDB settings for disk usage optimization
+        head_compaction_concurrency: 1
+        head_compaction_idle_timeout: 1h
+        # Additional WAL tuning
+        wal_compression_enabled: true
 
       bucket_store:
         # Sync directory for block operations
@@ -1148,7 +1148,7 @@ ingester:
     accessModes:
     - ReadWriteOnce
     # Ingester data Persistent Volume size
-    size: 2Gi
+    size: 5Gi
 
     # Subdirectory of Ingester data Persistent Volume to mount
     # Useful if the volume's root directory is not empty
@@ -2310,7 +2310,7 @@ store_gateway:
     - ReadWriteOnce
     # Store-gateway data Persistent Volume size
     #
-    size: 2Gi
+    size: 5Gi
 
     # Subdirectory of Store-gateway data Persistent Volume to mount
     # Useful if the volume's root directory is not empty
@@ -2552,7 +2552,7 @@ compactor:
     - ReadWriteOnce
     # compactor data Persistent Volume size
     #
-    size: 2Gi
+    size: 5Gi
 
     # Subdirectory of compactor data Persistent Volume to mount
     # Useful if the volume's root directory is not empty
