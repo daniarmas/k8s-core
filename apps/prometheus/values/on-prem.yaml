@@ -1220,7 +1220,7 @@ alertmanager:
   ## Using default values from https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
   ##
 grafana:
-  enabled: false
+  enabled: true
   namespaceOverride: ""
 
   ## ForceDeployDatasources Create datasource configmap even if grafana deployment has been disabled
@@ -1294,8 +1294,14 @@ grafana:
   ##
   defaultDashboardsInterval: 1m
 
-  adminUser: admin
-  adminPassword: prom-operator
+  # adminUser: admin
+  # adminPassword: prom-operator
+
+  # Use secret instead:
+  admin:
+    existingSecret: "grafana-credentials"
+    userKey: "admin-user"
+    passwordKey: "admin-password"
 
   rbac:
     ## If true, Grafana PSPs will be created
@@ -1305,21 +1311,23 @@ grafana:
   ingress:
     ## If true, Grafana Ingress will be created
     ##
-    enabled: false
+    enabled: true
 
     ## IngressClassName for Grafana Ingress.
     ## Should be provided if Ingress is enable.
     ##
-    # ingressClassName: nginx
+    ingressClassName: nginx
 
     ## Annotations for Grafana Ingress
     ##
-    annotations: {}
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
 
-    ## Labels to be added to the Ingress
-    ##
+      ## Labels to be added to the Ingress
+      ##
     labels: {}
 
     ## Hostnames.
@@ -1327,15 +1335,18 @@ grafana:
     ##
     # hosts:
     #   - grafana.domain.com
-    hosts: []
-
+    hosts:
+    - grafana.home.daniel-enrique.com
     ## Path for grafana ingress
     path: /
 
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
     ##
-    tls: []
+    tls:
+    - secretName: wildcard-home-tls
+      hosts:
+      - grafana.home.daniel-enrique.com
     # - secretName: grafana-general-tls
     #   hosts:
     #   - grafana.example.com
@@ -1381,13 +1392,6 @@ grafana:
       enabled: true
       defaultDatasourceEnabled: true
       isDefaultDatasource: true
-
-      name: Prometheus
-      uid: prometheus
-
-      ## URL of prometheus datasource
-      ##
-      # url: http://prometheus-stack-prometheus:9090/
 
       ## Prometheus request timeout in seconds
       # timeout: 30
@@ -1441,7 +1445,33 @@ grafana:
 
   ## Configure additional grafana datasources (passed through tpl)
   ## ref: https://grafana.com/docs/grafana/latest/administration/provisioning/#datasources
-  additionalDataSources: []
+  # Add additional datasources here
+  additionalDataSources:
+  - name: Grafana Mimir
+    type: prometheus
+    access: proxy
+    url: http://mimir-nginx.grafana-mimir.svc.cluster.local/prometheus
+    isDefault: false # Set to true if you want this as default
+    uid: mimir
+    editable: false
+    jsonData:
+      httpMethod: POST
+      prometheusType: Mimir
+      prometheusVersion: "2.40.0"
+      httpHeaderName1: "X-Scope-OrgID"
+    secureJsonData:
+      httpHeaderValue1: "prometheus"
+  - name: Prometheus
+    type: prometheus
+    url: http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090
+    access: proxy
+    isDefault: false
+    uid: prometheus
+    editable: false
+    jsonData:
+      httpMethod: POST
+      prometheusType: Prometheus
+      prometheusVersion: 2.40.0
   # - name: prometheus-sample
   #   access: proxy
   #   basicAuth: true
@@ -4319,6 +4349,14 @@ prometheus:
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#remotewritespec
     remoteWrite:
     - url: "http://mimir-distributor.grafana-mimir.svc.cluster.local:8080/api/v1/push"
+      remote_timeout: 30s
+      queue_config:
+        capacity: 10000 # queue size in samples
+        max_shards: 200 # parallelism
+        max_samples_per_send: 5000 # batch size per request
+        batch_send_deadline: 5s # flush interval
+        min_backoff: 100ms
+        max_backoff: 5s
       headers:
         X-Scope-OrgID: prometheus
     # - url: http://remote1/push

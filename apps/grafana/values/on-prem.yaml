@@ -848,26 +848,6 @@ dashboards:
       gnetId: 1860
       revision: 33
       datasource: Grafana Mimir
-    # Kubernetes Cluster Overview - better compatibility
-    kubernetes-cluster-overview:
-      gnetId: 7249
-      revision: 1
-      datasource: Grafana Mimir
-    # Kubernetes Cluster (Prometheus) - comprehensive cluster view
-    kubernetes-cluster-prometheus:
-      gnetId: 6417
-      revision: 1
-      datasource: Grafana Mimir
-    # Kubernetes resource monitoring
-    kubernetes-resource-monitoring:
-      gnetId: 8588
-      revision: 1
-      datasource: Grafana Mimir
-    # Kubernetes Compute Resources Cluster - official kube-prometheus compatible
-    kubernetes-compute-resources:
-      gnetId: 12130
-      revision: 2
-      datasource: Grafana Mimir
     # Kubernetes Namespace Resource Usage - shows workloads and resources by namespace
     kubernetes-namespace-resources:
       gnetId: 15757
@@ -878,16 +858,11 @@ dashboards:
       gnetId: 15758
       revision: 35
       datasource: Grafana Mimir
-    # NEW: Kubernetes Pod Resources - pod CPU/memory usage by namespace
-    kubernetes-pod-resources:
-      gnetId: 14205
-      revision: 1
-      datasource: Grafana Mimir
     # NEW: Kubernetes Multi-Cluster - pods and containers view
-    kubernetes-multi-cluster-pods:
-      gnetId: 15661
-      revision: 1
-      datasource: Grafana Mimir
+    # kubernetes-multi-cluster-pods:
+    #   gnetId: 15661
+    #   revision: 1
+    #   datasource: Grafana Mimir
   #     url: https://example.com/repository/test-b64.json
   #     token: ''
   #     b64content: true
