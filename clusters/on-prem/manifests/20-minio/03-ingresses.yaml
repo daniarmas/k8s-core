@@ -1,0 +1,56 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-console-ingress
+  namespace: minio-tenant
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"  # ✅ Add this
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"  # ✅ Add this for self-signed certs
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - minio-console.home.daniel-enrique.com
+    secretName: wildcard-home-tls
+  rules:
+  - host: minio-console.home.daniel-enrique.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: minio-console
+            port:
+              number: 9443
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-ingress
+  namespace: minio-tenant
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"  # ✅ Add this
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"  # ✅ Add this for self-signed certs
+    
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - minio.home.daniel-enrique.com
+    secretName: wildcard-home-tls
+  rules:
+  - host: minio.home.daniel-enrique.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: minio
+            port:
+              number: 443
