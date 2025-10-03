@@ -43,7 +43,7 @@ helmfiles:
   values:
   - environment: on-prem
 
-- path: ../../apps/mimir/helmfile.yaml
+- path: ../../apps/grafana-mimir/helmfile.yaml
   values:
   - environment: on-prem
 
