@@ -62,3 +62,7 @@ helmfiles:
 - path: ../../apps/grafana-operator/helmfile.yaml
   values:
   - environment: on-prem
+
+- path: ../../apps/minio/helmfile.yaml
+  values:
+  - environment: on-prem
