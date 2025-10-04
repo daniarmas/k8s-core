@@ -1,0 +1,33 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: minio-api-internal-tls
+  namespace: minio-tenant
+spec:
+  secretName: minio-api-internal-tls
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  commonName: minio.minio-tenant.svc.cluster.local
+  dnsNames:
+  # ✅ Main service names (existing)
+  - minio.minio-tenant.svc.cluster.local
+  - minio-api.minio-tenant.svc.cluster.local
+  - "*.minio-tenant.svc.cluster.local"
+  
+  # ✅ Add headless service pattern for internal cluster communication
+  - "*.minio-hl.minio-tenant.svc.cluster.local"
+  - minio-hl.minio-tenant.svc.cluster.local
+  
+  # ✅ Add specific pod names (MinIO pools use these)
+  - "minio-pool-0-0.minio-hl.minio-tenant.svc.cluster.local"
+  - "minio-pool-0-1.minio-hl.minio-tenant.svc.cluster.local"
+  - "minio-pool-0-2.minio-hl.minio-tenant.svc.cluster.local"
+  - "minio-pool-0-3.minio-hl.minio-tenant.svc.cluster.local"
+  duration: 8760h
+  renewBefore: 720h
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+  - client auth

@@ -5,11 +5,11 @@ export VAULT_ADDR=http://127.0.0.1:8200
 
 vault policy write minio - <<EOF
 # Allow reading minio secrets
-path "secret/data/minio/*" {
+path "secret/data/s3/minio/*" {
   capabilities = ["read"]
 }
 
-path "secret/metadata/minio/*" {
+path "secret/metadata/s3/minio/*" {
   capabilities = ["read", "list"]
 }
 
