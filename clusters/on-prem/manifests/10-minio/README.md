@@ -11,7 +11,7 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=minio apply
 
 ### 2. Create the storage configuration secret
 ```bash
-vault kv put secret/s3/minio/storage-configuration \
+vault kv put secret/s3/minio/app/storage-configuration \
   MINIO_ROOT_USER=changeme \
   MINIO_ROOT_PASSWORD=changeme \
   MINIO_STORAGE_CLASS_STANDARD="EC:2" \
@@ -20,7 +20,7 @@ vault kv put secret/s3/minio/storage-configuration \
 
 ### 3. Create the minio console secret
 ```bash
-vault kv put secret/s3/minio/minio-console-credentials \
+vault kv put secret/s3/minio/app/minio-console-credentials \
   CONSOLE_ACCESS_KEY=changeme \
   CONSOLE_SECRET_KEY=changeme
 ```

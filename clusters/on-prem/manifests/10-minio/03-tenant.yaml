@@ -72,8 +72,7 @@ spec:
   serviceMetadata:
     consoleServiceAnnotations: {}
     consoleServiceLabels: {}
-    minioServiceAnnotations:
-      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "minio-api-internal-tls"
+    minioServiceAnnotations: {}
     minioServiceLabels: {}
   subPath: ""
   users:
