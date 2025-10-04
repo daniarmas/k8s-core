@@ -4,3 +4,170 @@ This internal PKI setup leverages cert-manager and HashiCorp Vault to automate c
 
 ## Installation
 
+### 1. Enable a root PKI at path "pki" (20 years max TTL)
+```bash
+vault secrets enable -path=pki pki
+```
+
+### 2. Set TTL for the root CA
+```bash
+vault secrets tune -max-lease-ttl=175200h pki
+```
+
+### 3. Generate an internal self-signed Root CA
+```bash
+vault write pki/root/generate/internal \
+  common_name="Internal Root CA" \
+  issuer_name="root-2024" \
+  key_type=rsa key_bits=4096 \
+  ttl=175200h > root_ca.crt
+```
+
+### 4. Configure the CA and CRL URLs
+```bash
+vault write pki/config/urls \
+    issuing_certificates="http://vault.vault.svc.cluster.local:8200/v1/pki/ca" \
+    crl_distribution_points="http://vault.vault.svc.cluster.local:8200/v1/pki/crl"
+```
+
+### 5. Export the Root CA
+```bash
+vault read -field=certificate pki/issuer/root-2024 > root-ca.pem
+```
+> **Note:** Keep this file safe; you’ll also use the intermediate CA chain for workloads’ trust.
+
+### 6. Enable an intermediate PKI at path "pki_int" (10 years max TTL)
+```bash
+vault secrets enable -path=pki_int pki
+```
+
+### 7. Set TTL for the intermediate CA (10 years max TTL)
+```bash
+vault secrets tune -max-lease-ttl=87600h pki_int
+```
+
+### 8. Generate Intermediate CSR
+```bash
+vault write -field=csr pki_int/intermediate/generate/internal \
+  common_name="Kubernetes Intermediate CA" \
+  key_type=rsa key_bits=4096 \
+  | tee intermediate.csr
+```
+
+### 9. Sign the Intermediate CSR with Root
+```bash
+vault write -format=json pki/root/sign-intermediate \
+  csr=@intermediate.csr \
+  format=pem_bundle ttl=87600h | jq -r '.data.certificate' > intermediate.cert.pem
+```
+
+### 10. Set the signed Intermediate on pki_int
+```bash
+vault write pki_int/intermediate/set-signed certificate=@intermediate.cert.pem
+```
+
+### 11. Export the intermediate CA chain
+```bash
+vault read -field=certificate pki_int/cert/ca > internal-ca-chain.pem
+```
+> **Note:** This is what your pods will trust.
+
+### 12. Configure URLs for Intermediate CA
+```bash
+vault write pki_int/config/urls \
+    issuing_certificates="http://vault.vault.svc.cluster.local:8200/v1/pki_int/ca" \
+    crl_distribution_points="http://vault.vault.svc.cluster.local:8200/v1/pki_int/crl"
+```
+
+### 13. Create roles for different services
+```bash
+vault write pki_int/roles/kubernetes-services \
+    allowed_domains="svc.cluster.local,cluster.local" \
+    allow_subdomains=true \
+    allow_glob_domains=false \
+    server_flag=true \
+    client_flag=true \
+    max_ttl="8760h" \
+    ttl="720h"
+```
+> **Note:** Role for Kubernetes services (MinIO, Harbor, etc.).
+
+### 14. Create policies for cert-manager to issue certificates
+```bash
+vault policy write cert-manager - <<EOF
+path "pki_int/sign/kubernetes-services" {
+  capabilities = ["create", "update"]
+}
+path "pki_int/issue/kubernetes-services" {
+  capabilities = ["create"]
+}
+EOF
+```
+
+### 15. Create Kubernetes authentication role for cert-manager
+```bash
+vault write auth/kubernetes/role/cert-manager \
+    bound_service_account_names=cert-manager \
+    bound_service_account_namespaces=cert-manager \
+    policies=cert-manager \
+    ttl=1h
+```
+
+### 16. Create Kubernetes authentication role for services that need certificates
+```bash
+vault write auth/kubernetes/role/pki-client \
+    bound_service_account_names="*" \
+    bound_service_account_namespaces="minio-tenant,harbor,grafana-mimir,default" \
+    policies=cert-manager \
+    ttl=1h
+```
+
+### 17. Create the service account token secret for cert-manager
+```bash
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cert-manager-vault-token
+  namespace: cert-manager
+  annotations:
+    kubernetes.io/service-account.name: cert-manager
+type: kubernetes.io/service-account-token
+EOF
+```
+> **Note:** This secret provides the Kubernetes service account token that cert-manager uses to authenticate with Vault.
+
+### 18. Create the ClusterIssuer
+```bash
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: vault-issuer
+spec:
+  vault:
+    server: http://vault.vault.svc.cluster.local:8200
+    path: pki_int/sign/kubernetes-services
+    auth:
+      kubernetes:
+        mountPath: /v1/auth/kubernetes
+        role: cert-manager
+        secretRef:
+          name: cert-manager-vault-token
+          key: token
+EOF
+```
+
+### 19. Create the CA Bundle ConfigMap (For trust distribution)
+```bash
+cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: internal-ca-bundle
+  namespace: kube-system
+data:
+  ca-bundle.crt: |
+$(sed 's/^/    /' internal-ca-chain.pem)
+EOF
+```

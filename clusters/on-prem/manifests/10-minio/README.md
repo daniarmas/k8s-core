@@ -11,7 +11,7 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=minio apply
 
 ### 2. Create the storage configuration secret
 ```bash
-vault kv put secret/minio/storage-configuration \
+vault kv put secret/s3/minio/storage-configuration \
   MINIO_ROOT_USER=changeme \
   MINIO_ROOT_PASSWORD=changeme \
   MINIO_STORAGE_CLASS_STANDARD="EC:2" \
@@ -20,17 +20,22 @@ vault kv put secret/minio/storage-configuration \
 
 ### 3. Create the minio console secret
 ```bash
-vault kv put secret/minio/minio-console-credentials \
+vault kv put secret/s3/minio/minio-console-credentials \
   CONSOLE_ACCESS_KEY=changeme \
   CONSOLE_SECRET_KEY=changeme
 ```
 
-### 4. Deploy the minio tenant
+### 4. Create the MinIO API TLS Certificate
 ```bash
-kubectl apply -f clusters/on-prem/manifests/20-minio/02-tenant-base.yaml
+kubectl apply -f clusters/on-prem/manifests/10-minio/02-minio-api-internal-certificate.yaml
 ```
 
-### 5. Deploy the ingresses
+### 5. Deploy the minio tenant
 ```bash
-kubectl apply -f clusters/on-prem/manifests/20-minio/03-ingresses.yaml
+kubectl apply -f clusters/on-prem/manifests/10-minio/03-tenant.yaml
+```
+
+### 6. Deploy the ingresses
+```bash
+kubectl apply -f clusters/on-prem/manifests/10-minio/05-ingresses.yaml
 ```
