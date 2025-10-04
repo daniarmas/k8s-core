@@ -28,7 +28,7 @@ spec:
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:
-  name: minio
+  name: minio-app
   namespace: minio-tenant
 spec:
   # Reference to the VaultConnection in the same namespace
@@ -40,7 +40,7 @@ spec:
 
   kubernetes:
     # Role configured in Vault for minio
-    role: "minio"
+    role: "minio-app"
 
     # Service account minio uses
     serviceAccount: "minio-vault-sa"
