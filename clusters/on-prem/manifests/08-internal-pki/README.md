@@ -82,9 +82,10 @@ vault write pki_int/config/urls \
 ### 13. Create roles for different services
 ```bash
 vault write pki_int/roles/kubernetes-services \
-    allowed_domains="svc.cluster.local,cluster.local" \
+    allowed_domains="svc.cluster.local,cluster.local,harbor-*" \
     allow_subdomains=true \
-    allow_glob_domains=false \
+    allow_glob_domains=true \
+    allow_bare_domains=true \
     server_flag=true \
     client_flag=true \
     max_ttl="8760h" \
@@ -117,7 +118,7 @@ vault write auth/kubernetes/role/cert-manager \
 ```bash
 vault write auth/kubernetes/role/pki-client \
     bound_service_account_names="*" \
-    bound_service_account_namespaces="minio-tenant,harbor,grafana-mimir,default" \
+    bound_service_account_namespaces="minio-tenant,harbor-vault-sa,grafana-mimir,default" \
     policies=cert-manager \
     ttl=1h
 ```
@@ -158,6 +159,11 @@ spec:
 EOF
 ```
 
+### 19. Combine Intermediate and Root CA Certificates
+```bash
+cat intermediate.cert.pem root-ca.pem > internal-ca-full-chain.pem
+```
+
 ### 19. Create the CA Bundle ConfigMap (For trust distribution)
 ```bash
 cat << EOF | kubectl apply -f -
@@ -168,6 +174,18 @@ metadata:
   namespace: kube-system
 data:
   ca-bundle.crt: |
-$(sed 's/^/    /' internal-ca-chain.pem)
+$(sed 's/^/    /' internal-ca-full-chain.pem)
 EOF
+```
+
+### 20. Distribute the CA Bundle to Other Namespaces
+```bash
+kubectl get configmap internal-ca-bundle -n kube-system -o yaml \
+  | sed 's/namespace: kube-system/namespace: harbor/' \
+  | kubectl apply -f -
+```
+
+### 21. Create a Secret for Harbor with the Internal CA Bundle
+```bash
+kubectl create secret generic harbor-internal-ca -n harbor --from-file=ca.crt=<(kubectl get configmap internal-ca-bundle -n kube-system -o jsonpath='{.data.ca-bundle\.crt}') --dry-run=client -o yaml | kubectl apply -f -
 ```

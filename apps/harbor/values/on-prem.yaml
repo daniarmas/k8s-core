@@ -192,16 +192,16 @@ persistence:
     # Refer to
     # https://github.com/distribution/distribution/blob/release/2.8/docs/configuration.md#redirect
     # for the detail.
-    disableredirect: false
+    disableredirect: true
     # Specify the "caBundleSecretName" if the storage service uses a self-signed certificate.
     # The secret must contain keys named "ca.crt" which will be injected into the trust store
     # of registry's containers.
-    # caBundleSecretName:
-
+    caBundleSecretName: harbor-internal-ca
+ 
     # Specify the type of storage: "filesystem", "azure", "gcs", "s3", "swift",
     # "oss" and fill the information needed in the corresponding section. The type
     # must be "filesystem" if you want to use persistent volumes for registry
-    type: filesystem
+    type: s3
     filesystem:
       rootdirectory: /storage
       #maxthreads: 100
@@ -224,23 +224,26 @@ persistence:
     s3:
       # Set an existing secret for S3 accesskey and secretkey
       # keys in the secret should be REGISTRY_STORAGE_S3_ACCESSKEY and REGISTRY_STORAGE_S3_SECRETKEY for registry
-      #existingSecret: ""
-      region: us-west-1
-      bucket: bucketname
+      existingSecret: "minio-access-keys"
+      region: us-east-1
+      bucket: harbor
       #accesskey: awsaccesskey
       #secretkey: awssecretkey
-      #regionendpoint: http://myobjects.local
-      #encrypt: false
+      regionendpoint: https://minio.minio-tenant.svc.cluster.local:443
+      # encrypt: false
       #keyid: mykeyid
-      #secure: true
-      #skipverify: false
-      #v4auth: true
-      #chunksize: "5242880"
+      secure: true
+      skipverify: false
+      # v4auth: true
+      chunksize: "5242880"
       #rootdirectory: /s3/object/name/prefix
-      #storageclass: STANDARD
-      #multipartcopychunksize: "33554432"
-      #multipartcopymaxconcurrency: 100
-      #multipartcopythresholdsize: "33554432"
+      storageclass: STANDARD
+      multipartcopychunksize: "33554432"
+      multipartcopymaxconcurrency: 50
+      multipartcopythresholdsize: "33554432"
+      # forcepathstyle: true
+      rootdirectory: /docker/registry
+      # storagePath: docker/registry
     swift:
       authurl: https://storage.myprovider.com/v3/auth
       username: username
@@ -280,28 +283,28 @@ persistence:
       # The initial password of Harbor admin. Change it from portal after launching Harbor
       # or give an existing secret for it
       # key in secret is given via (default to HARBOR_ADMIN_PASSWORD)
-existingSecretAdminPassword: ""
-existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
-harborAdminPassword: "Harbor12345"
+existingSecretAdminPassword: "harbor-configuration"
+existingSecretAdminPasswordKey: harbor_admin_password
+harborAdminPassword: ""
 
 # The internal TLS used for harbor components secure communicating. In order to enable https
 # in each component tls cert files need to provided in advance.
 internalTLS:
   # If internal TLS enabled
-  enabled: false
+  enabled: true
   # enable strong ssl ciphers (default: false)
   strong_ssl_ciphers: false
   # There are three ways to provide tls
   # 1) "auto" will generate cert automatically
   # 2) "manual" need provide cert file manually in following value
   # 3) "secret" internal certificates from secret
-  certSource: "auto"
+  certSource: "secret"
   # The content of trust ca, only available when `certSource` is "manual"
   trustCa: ""
   # core related cert configuration
   core:
     # secret name for core's tls certs
-    secretName: ""
+    secretName: "harbor-internal-tls"
     # Content of core's TLS cert file, only available when `certSource` is "manual"
     crt: ""
     # Content of core's TLS key file, only available when `certSource` is "manual"
@@ -309,7 +312,7 @@ internalTLS:
   # jobservice related cert configuration
   jobservice:
     # secret name for jobservice's tls certs
-    secretName: ""
+    secretName: "harbor-internal-tls"
     # Content of jobservice's TLS key file, only available when `certSource` is "manual"
     crt: ""
     # Content of jobservice's TLS key file, only available when `certSource` is "manual"
@@ -317,7 +320,7 @@ internalTLS:
   # registry related cert configuration
   registry:
     # secret name for registry's tls certs
-    secretName: ""
+    secretName: "harbor-internal-tls"
     # Content of registry's TLS key file, only available when `certSource` is "manual"
     crt: ""
     # Content of registry's TLS key file, only available when `certSource` is "manual"
@@ -325,7 +328,7 @@ internalTLS:
   # portal related cert configuration
   portal:
     # secret name for portal's tls certs
-    secretName: ""
+    secretName: "harbor-internal-tls"
     # Content of portal's TLS key file, only available when `certSource` is "manual"
     crt: ""
     # Content of portal's TLS key file, only available when `certSource` is "manual"
@@ -333,7 +336,7 @@ internalTLS:
   # trivy related cert configuration
   trivy:
     # secret name for trivy's tls certs
-    secretName: ""
+    secretName: "harbor-internal-tls"
     # Content of trivy's TLS key file, only available when `certSource` is "manual"
     crt: ""
     # Content of trivy's TLS key file, only available when `certSource` is "manual"
@@ -393,7 +396,7 @@ enableMigrateHelmHook: false
 
 # The custom ca bundle secret, the secret must contain key named "ca.crt"
 # which will be injected into the trust store for core, jobservice, registry, trivy components
-# caBundleSecretName: ""
+caBundleSecretName: harbor-internal-ca
 
 ## UAA Authentication Options
 # If you're using UAA for authentication behind a self-signed
@@ -403,7 +406,7 @@ enableMigrateHelmHook: false
 # uaaSecretName:
 
 metrics:
-  enabled: false
+  enabled: true
   core:
     path: /metrics
     port: 8001
@@ -582,7 +585,44 @@ core:
   #  requests:
   #    memory: 256Mi
   #    cpu: 100m
-  extraEnvVars: []
+  # ✅ ADD CA bundle volumes and mounts
+  extraVolumes:
+  - name: internal-ca-bundle
+    configMap:
+      name: harbor-internal-ca
+      
+  extraVolumeMounts:
+  - name: internal-ca-bundle
+    mountPath: /etc/ssl/certs/internal-ca-bundle.crt
+    subPath: ca-bundle.crt
+    readOnly: true
+  # ✅ ADD environment variables for S3 and SSL
+  extraEnvVars:
+  # SSL/CA configuration
+  - name: SSL_CERT_DIR
+    value: "/etc/ssl/certs"
+  - name: REQUESTS_CA_BUNDLE
+    value: "/etc/ssl/certs/internal-ca-bundle.crt"
+  - name: CURL_CA_BUNDLE
+    value: "/etc/ssl/certs/internal-ca-bundle.crt"
+    
+  # S3 bucket from harbor-configuration secret
+  - name: REGISTRY_STORAGE_S3_BUCKET
+    valueFrom:
+      secretKeyRef:
+        name: harbor-configuration
+        key: bucket_name
+        
+  # MinIO endpoint - you'll need to add this to harbor-configuration
+  - name: REGISTRY_STORAGE_S3_REGIONENDPOINT
+    valueFrom:
+      secretKeyRef:
+        name: harbor-configuration
+        key: s3_endpoint
+        
+  # Region can be hardcoded or from secret
+  - name: REGISTRY_STORAGE_S3_REGION
+    value: "us-east-1"
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -724,7 +764,65 @@ registry:
     #  requests:
     #    memory: 256Mi
     #    cpu: 100m
-    extraEnvVars: []
+    # ✅ ADD CA bundle volumes and mounts
+    extraVolumes:
+    - name: internal-ca-bundle
+      configMap:
+        name: harbor-internal-ca
+        
+    extraVolumeMounts:
+    - name: internal-ca-bundle
+      mountPath: /etc/ssl/certs/internal-ca-bundle.crt
+      subPath: ca-bundle.crt
+      readOnly: true
+    
+    # ✅ ADD environment variables for S3 and SSL
+    extraEnvVars:
+    # SSL/CA configuration
+    - name: SSL_CERT_DIR
+      value: "/etc/ssl/certs"
+    - name: REQUESTS_CA_BUNDLE
+      value: "/etc/ssl/certs/internal-ca-bundle.crt"
+    - name: CURL_CA_BUNDLE
+      value: "/etc/ssl/certs/internal-ca-bundle.crt"
+      
+    # S3 configuration
+    - name: REGISTRY_STORAGE_S3_BUCKET
+      valueFrom:
+        secretKeyRef:
+          name: harbor-configuration
+          key: bucket_name
+          
+    - name: REGISTRY_STORAGE_S3_REGIONENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: harbor-configuration
+          key: s3_endpoint
+          
+    - name: REGISTRY_STORAGE_S3_REGION
+      value: "us-east-1"
+      
+    # Additional S3 settings
+    - name: REGISTRY_STORAGE_S3_SECURE
+      value: "true"
+    - name: REGISTRY_STORAGE_S3_SKIPVERIFY
+      value: "false"
+    - name: REGISTRY_STORAGE_S3_V4AUTH
+      value: "true"
+    - name: REGISTRY_STORAGE_S3_FORCEPATHSTYLE
+      value: "true"
+     # ✅ ADD these S3 signature and path settings
+    # - name: REGISTRY_STORAGE_S3_ROOTDIRECTORY
+    #   value: "/docker/registry"
+    # - name: REGISTRY_STORAGE_S3_STORAGEPATH  
+    #   value: "docker/registry"
+    - name: REGISTRY_STORAGE_S3_SIGNATURE_VERSION
+      value: "4"
+    - name: REGISTRY_STORAGE_S3_ACCELERATE
+      value: "false"
+    # ✅ Ensure correct MinIO endpoint format
+    - name: REGISTRY_STORAGE_S3_REGIONENDPOINT
+      value: "https://minio.minio-tenant.svc.cluster.local:443"
   controller:
     image:
       repository: goharbor/harbor-registryctl
@@ -847,7 +945,7 @@ trivy:
   #   image: busybox
   #   command: [ 'sh', '-c', "sleep 20" ]
   # debugMode the flag to enable Trivy debug mode with more verbose scanning log
-  debugMode: false
+  debugMode: true
   # vulnType a comma-separated list of vulnerability types. Possible values are `os` and `library`.
   vulnType: "os,library"
   # severity a comma-separated list of severities to be checked
