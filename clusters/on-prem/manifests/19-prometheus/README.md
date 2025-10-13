@@ -9,17 +9,12 @@ Prometheus is an open-source monitoring and alerting toolkit designed for reliab
 vault kv put secret/prometheus/grafana-credentials admin-user="changeme" admin-password="changeme"
 ```
 
-### 2. Create the grafana secret for oauth2
-```bash
-vault kv put secret/prometheus/grafana-google-oauth GOOGLE_CLIENT_ID="changeme" GOOGLE_CLIENT_SECRET="changeme"
-```
-
-### 3. Install Prometheus CRDs
+### 2. Install Prometheus CRDs
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=prometheus-crds apply
 ```
 
-### 4. Install Prometheus
+### 3. Install Prometheus
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=prometheus apply
 ```

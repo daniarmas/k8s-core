@@ -34,8 +34,8 @@ spec:
   mount: kubernetes
 
   kubernetes:
-    # Role configured in Vault for mimir
-    role: "mimir"
+    # Role configured in Vault for grafana-mimir
+    role: "grafana-mimir-configuration"
 
-    # Service account mimir uses
+    # Service account grafana-mimir uses
     serviceAccount: "mimir-sa"
