@@ -47,6 +47,10 @@ helmfiles:
   values:
   - environment: on-prem
 
+- path: ../../apps/grafana-loki/helmfile.yaml
+  values:
+  - environment: on-prem
+
 - path: ../../apps/prometheus/helmfile.yaml
   values:
   - environment: on-prem
