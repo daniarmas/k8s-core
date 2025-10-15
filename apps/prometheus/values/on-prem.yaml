@@ -1223,11 +1223,11 @@ grafana:
   enabled: true
   namespaceOverride: ""
 
-  plugins:
-    - grafana-lokiexplore-app
-  grafana.ini:
-    plugins:
-      allow_loading_unsigned_plugins: grafana-lokiexplore-app
+  # plugins:
+  #   - grafana-lokiexplore-app
+  # grafana.ini:
+  #   plugins:
+  #     allow_loading_unsigned_plugins: grafana-lokiexplore-app
 
   ## ForceDeployDatasources Create datasource configmap even if grafana deployment has been disabled
   ##
