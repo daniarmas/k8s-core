@@ -1223,6 +1223,12 @@ grafana:
   enabled: true
   namespaceOverride: ""
 
+  # plugins:
+  #   - grafana-lokiexplore-app
+  # grafana.ini:
+  #   plugins:
+  #     allow_loading_unsigned_plugins: grafana-lokiexplore-app
+
   ## ForceDeployDatasources Create datasource configmap even if grafana deployment has been disabled
   ##
   forceDeployDatasources: false
@@ -1472,6 +1478,17 @@ grafana:
       httpMethod: POST
       prometheusType: Prometheus
       prometheusVersion: 2.40.0
+  - name: Grafana Loki
+    type: loki
+    access: proxy
+    url: http://grafana-loki-query-frontend.grafana-loki.svc.cluster.local:3100
+    uid: loki
+    isDefault: false
+    editable: true
+    jsonData:
+      httpHeaderName1: "X-Scope-OrgID"
+    secureJsonData:
+      httpHeaderValue1: "onprem"
   # - name: prometheus-sample
   #   access: proxy
   #   basicAuth: true
