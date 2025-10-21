@@ -66,9 +66,9 @@ vault write -format=json pki/root/sign-intermediate \
 vault write pki_int/intermediate/set-signed certificate=@intermediate.cert.pem
 ```
 
-### 11. Export the intermediate CA chain
+### 11. Export the intermediate CA certificate
 ```bash
-vault read -field=certificate pki_int/cert/ca > internal-ca-chain.pem
+vault read -field=certificate pki_int/cert/ca > intermediate-ca.pem
 ```
 > **Note:** This is what your pods will trust.
 
