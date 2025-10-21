@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: grafana-loki
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: loki-sa
+  namespace: grafana-loki
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: default
+  namespace: grafana-loki
+spec:
+  # Address of your Vault server
+  address: "http://vault.vault.svc.cluster.local:8200"
+  # Skip TLS verification (set to true if using HTTP or self-signed certs)
+  skipTLSVerify: true
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: loki
+  namespace: grafana-loki
+spec:
+  # Reference to the VaultConnection in the same namespace
+  vaultConnectionRef: default
+
+  # Kubernetes authentication method
+  method: kubernetes
+  mount: kubernetes
+
+  kubernetes:
+    # Role configured in Vault for grafana-loki
+    role: "grafana-loki-configuration"
+
+    # Service account grafana-loki uses
+    serviceAccount: "loki-sa"

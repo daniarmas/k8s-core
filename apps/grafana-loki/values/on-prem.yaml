@@ -18,7 +18,8 @@ global:
   dnsNamespace: "kube-system"
   # -- Common additional CLI arguments for all jobs (that is, -log.level debug, -config.expand-env=true or -log-config-reverse-order)
   # scope: admin-api, backend, bloom-builder, bloom-gateway, bloom-planner, compactor, distributor, index-gateway, ingester, overrides-exporter, pattern-ingester, querier, query-frontend, query-scheduler, read, ruler, write.
-  extraArgs: []
+  extraArgs:
+    - -config.expand-env=true
   # -- Common environment variables to add to all pods directly managed by this chart.
   # scope: admin-api, backend, bloom-builder, bloom-gateway, bloom-planner, compactor, distributor, index-gateway, ingester, overrides-exporter, pattern-ingester, querier, query-frontend, query-scheduler, read, ruler, write.
   extraEnv: []
@@ -28,7 +29,9 @@ global:
   # extraEnvFrom:
   #   - secretRef:
   #       name: mysecret
-  extraEnvFrom: []
+  extraEnvFrom:
+    - secretRef:
+        name: grafana-loki-app
   # -- Common volumes to add to all pods directly managed by this chart.
   # scope: admin-api, backend, bloom-builder, bloom-gateway, bloom-planner, compactor, distributor, index-gateway, ingester, overrides-exporter, pattern-ingester, querier, query-frontend, query-scheduler, read, ruler, write.
   extraVolumes: []
@@ -427,16 +430,16 @@ loki:
     # Loki requires a bucket for chunks and the ruler. GEL requires a third bucket for the admin API.
     # Please provide these values if you are using object storage.
     bucketNames:
-      chunks: "grafana-loki-chunks"
-      ruler: "grafana-loki-ruler"
-      admin: "grafana-loki-admin"
+      chunks: "${chunks_storage_bucket_name}"
+      ruler: "${ruler_storage_bucket_name}"
+      admin: "${admin_storage_bucket_name}"
     type: s3
     s3:
       s3: null
-      endpoint: "minio.minio-tenant.svc.cluster.local:443"
+      endpoint: "${endpoint}"
       region: "us-east-1"
-      secretAccessKey: "g4TWJEckpBb0MgBYqLXWtbJp53vdTxAINuB9cMMQ"
-      accessKeyId: "vnIJR7wSTX7x2TkOcImc"
+      secretAccessKey: "${secret_access_key}"
+      accessKeyId: "${access_key_id}"
       signatureVersion: v4
       s3ForcePathStyle: true
       insecure: false

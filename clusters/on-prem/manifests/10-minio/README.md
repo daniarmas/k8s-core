@@ -35,7 +35,12 @@ kubectl apply -f clusters/on-prem/manifests/10-minio/02-minio-api-internal-certi
 kubectl apply -f clusters/on-prem/manifests/10-minio/03-tenant.yaml
 ```
 
-### 6. Deploy the ingresses
+### 6. Deploy the minio service
+```bash
+kubectl apply -f clusters/on-prem/manifests/10-minio/04-minio-service.yaml
+```
+
+### 7. Deploy the ingresses
 ```bash
 kubectl apply -f clusters/on-prem/manifests/10-minio/05-ingresses.yaml
 ```
