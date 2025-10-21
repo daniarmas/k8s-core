@@ -74,7 +74,7 @@ vault write pki_int/intermediate/set-signed certificate=@intermediate.cert.pem
 ```bash
 vault read -field=certificate pki_int/cert/ca > intermediate-ca.pem
 ```
-> **Note:** This is the intermediate CA certificate only. The full chain (intermediate + root) will be created in Step 17 for pod trust.
+> **Note:** This is the intermediate CA certificate only.
 
 ### 12. Configure URLs for Intermediate CA
 ```bash
@@ -99,7 +99,20 @@ vault write pki_int/roles/kubernetes-services \
 ```
 > **Note:** Role for general Kubernetes services. Allows certificates for any service in the cluster.
 
-### 14. Create policies for cert-manager to issue certificates
+### 14. Create a role for minio services
+```bash
+vault write pki_int/roles/minio \
+    allowed_domains="minio.minio-tenant.svc.cluster.local,*.minio-tenant.svc.cluster.local" \
+    allow_subdomains=false \
+    allow_bare_domains=false \
+    server_flag=true \
+    client_flag=true \
+    max_ttl="8760h" \
+    ttl="720h"
+```
+> **Note:** Role for MinIO services. Allows certificates only for MinIO-specific domains.
+
+### 15. Create policies for cert-manager to issue certificates
 ```bash
 vault policy write cert-manager - <<EOF
 path "pki_int/sign/kubernetes-services" {
@@ -108,10 +121,17 @@ path "pki_int/sign/kubernetes-services" {
 path "pki_int/issue/kubernetes-services" {
   capabilities = ["create"]
 }
+# MinIO-specific role
+path "pki_int/sign/minio" {
+  capabilities = ["create", "update"]
+}
+path "pki_int/issue/minio" {
+  capabilities = ["create"]
+}
 EOF
 ```
 
-### 15. Create Kubernetes authentication role for cert-manager
+### 16. Create Kubernetes authentication role for cert-manager
 ```bash
 vault write auth/kubernetes/role/cert-manager \
     bound_service_account_names=cert-manager \
@@ -121,7 +141,7 @@ vault write auth/kubernetes/role/cert-manager \
     max_ttl=24h
 ```
 
-### 16. Create the ClusterIssuer
+### 17. Create the ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -142,13 +162,35 @@ EOF
 ```
 > **Note:** Currently using HTTP for Vault communication. For production, configure Vault with TLS and update this to use `https://` with a `caBundle`.
 
-### 17. Combine Intermediate and Root CA Certificates
+### 18. Create the MinIO Issuer
+```bash
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: vault-minio
+  namespace: minio-tenant
+spec:
+  vault:
+    server: http://vault.vault.svc.cluster.local:8200
+    path: pki_int/sign/minio
+    auth:
+      kubernetes:
+        mountPath: /v1/auth/kubernetes
+        role: cert-manager
+        serviceAccountRef:
+          name: cert-manager
+EOF
+```
+> **Note:** Namespace-specific Issuer for MinIO. Uses the minio PKI role which restricts certificates to MinIO domains only.
+
+### 19. Combine Intermediate and Root CA Certificates
 ```bash
 cat intermediate.cert.pem root-ca.pem > internal-ca-full-chain.pem
 ```
 > **Note:** Certificate chain order: intermediate first, then root. This is the standard order for trust bundles.
 
-### 18. Create the CA Bundle ConfigMap (For trust distribution)
+### 20. Create the CA Bundle ConfigMap (For trust distribution)
 ```bash
 cat << EOF | kubectl apply -f -
 apiVersion: v1
