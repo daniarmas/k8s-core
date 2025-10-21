@@ -117,15 +117,6 @@ vault write auth/kubernetes/role/cert-manager \
     max_ttl=24h
 ```
 
-### 16. Create Kubernetes authentication role for services that need certificates
-```bash
-vault write auth/kubernetes/role/pki-client \
-    bound_service_account_names="*" \
-    bound_service_account_namespaces="minio-tenant,harbor-vault-sa,grafana-mimir,default" \
-    policies=cert-manager \
-    ttl=1h
-```
-
 ### 17. Create the service account token secret for cert-manager
 ```bash
 kubectl apply -f - <<EOF
