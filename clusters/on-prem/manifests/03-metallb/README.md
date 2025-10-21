@@ -4,7 +4,7 @@ MetalLB is a load-balancer implementation for Kubernetes clusters running on-pre
 
 ## Installation
 
-### 1. Install Ingress-Nginx
+### 1. Install MetalLB
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=metallb apply
 ```
