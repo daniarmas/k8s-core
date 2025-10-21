@@ -113,7 +113,8 @@ vault write auth/kubernetes/role/cert-manager \
     bound_service_account_names=cert-manager \
     bound_service_account_namespaces=cert-manager \
     policies=cert-manager \
-    ttl=1h
+    ttl=1h \
+    max_ttl=24h
 ```
 
 ### 16. Create Kubernetes authentication role for services that need certificates
