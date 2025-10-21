@@ -70,7 +70,7 @@ vault write pki_int/intermediate/set-signed certificate=@intermediate.cert.pem
 ```bash
 vault read -field=certificate pki_int/cert/ca > intermediate-ca.pem
 ```
-> **Note:** This is what your pods will trust.
+> **Note:** This is the intermediate CA certificate only. The full chain (intermediate + root) will be created in Step 17 for pod trust.
 
 ### 12. Configure URLs for Intermediate CA
 ```bash
@@ -136,13 +136,15 @@ spec:
           name: cert-manager
 EOF
 ```
+> **Note:** Currently using HTTP for Vault communication. For production, configure Vault with TLS and update this to use `https://` with a `caBundle`.
 
-### 19. Combine Intermediate and Root CA Certificates
+### 17. Combine Intermediate and Root CA Certificates
 ```bash
 cat intermediate.cert.pem root-ca.pem > internal-ca-full-chain.pem
 ```
+> **Note:** Certificate chain order: intermediate first, then root. This is the standard order for trust bundles.
 
-### 19. Create the CA Bundle ConfigMap (For trust distribution)
+### 18. Create the CA Bundle ConfigMap (For trust distribution)
 ```bash
 cat << EOF | kubectl apply -f -
 apiVersion: v1
@@ -155,15 +157,4 @@ data:
 $(sed 's/^/    /' internal-ca-full-chain.pem)
 EOF
 ```
-
-### 20. Distribute the CA Bundle to Other Namespaces
-```bash
-kubectl get configmap internal-ca-bundle -n kube-system -o yaml \
-  | sed 's/namespace: kube-system/namespace: harbor/' \
-  | kubectl apply -f -
-```
-
-### 21. Create a Secret for Harbor with the Internal CA Bundle
-```bash
-kubectl create secret generic harbor-internal-ca -n harbor --from-file=ca.crt=<(kubectl get configmap internal-ca-bundle -n kube-system -o jsonpath='{.data.ca-bundle\.crt}') --dry-run=client -o yaml | kubectl apply -f -
-```
+> **Note:** This ConfigMap serves as the source of truth for your internal CA bundle.
