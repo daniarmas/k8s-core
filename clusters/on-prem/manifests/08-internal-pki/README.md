@@ -20,7 +20,7 @@ vault write pki/root/generate/internal \
   common_name="Internal Root CA" \
   issuer_name="root-2024" \
   key_type=rsa key_bits=4096 \
-  ttl=175200h > root_ca.crt
+  ttl=175200h
 ```
 
 ### 4. Configure the CA and CRL URLs
