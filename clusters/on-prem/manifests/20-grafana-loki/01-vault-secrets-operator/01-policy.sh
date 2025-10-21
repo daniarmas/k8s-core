@@ -3,14 +3,14 @@ set -e
 
 export VAULT_ADDR=http://127.0.0.1:8200
 
-vault policy write oauth2-proxy - <<EOF
-# Allow reading oauth2-proxy secrets
-path "secret/data/oauth2-proxy" {
+vault policy write grafana-loki-configuration - <<EOF
+# Allow reading grafana-loki secrets
+path "secret/data/grafana-loki/app/configuration" {
   capabilities = ["read"]
 }
 
-path "secret/metadata/oauth2-proxy" {
-  capabilities = ["read", "list"]
+path "secret/metadata/grafana-loki/app/configuration" {
+  capabilities = ["read"]
 }
 
 # Allow token operations

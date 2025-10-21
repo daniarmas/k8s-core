@@ -16,17 +16,35 @@ This directory contains the configuration for deploying applications to the on-p
 
 ### 3. [MetalLB](./manifests/03-metallb/README.md)
 
-### 4. [Ingress Nginx](./manifests/04-ingress-nginx/README.md)
+### 4. [Cert Manager](./manifests/04-cert-manager/README.md)
 
-### 5. [Vault](./manifests/05-vault/README.md)
+### 5. [Ingress Nginx](./manifests/05-ingress-nginx/README.md)
 
-### 6. [Vault Secrets Operator](./manifests/06-vault-secrets-operator/README.md)
+### 6. [Gateway](./manifests/06-gateway/README.md)
 
-### 7. [Cert Manager](./manifests/07-cert-manager/README.md)
+### 7. [Vault](./manifests/07-vault/README.md)
 
-### 8. [Gateway](./manifests/08-gateway/README.md)
+### 8. [Internal PKI](./manifests/08-internal-pki/README.md)
 
-### 7. [Cloud Native PG](./manifests/09-cnpg/README.md)
+### 9. [Vault Secrets Operator](./manifests/09-vault-secrets-operator/README.md)
+
+### 10. [MinIO](./manifests/10-minio/README.md)
+
+### 11. [Harbor](./manifests/11-harbor/README.md)
+
+### 12. [Cnpg](./manifests/12-cnpg/README.md)
+
+### 14. [Ot Redis Operator](./manifests/14-ot-redis-operator/README.md)
+
+### 17. [Grafana Mimir](./manifests/17-grafana-mimir/README.md)
+
+### 18. [Grafana Operator](./manifests/18-grafana-operator/README.md)
+
+### 19. [Prometheus](./manifests/19-prometheus/README.md)
+
+### 20. [Grafana Loki](./manifests/20-grafana-loki/README.md)
+
+### 21. [Grafana Alloy](./manifests/21-grafana-alloy/README.md)
 
 ## Applications Deployed
 

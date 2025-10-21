@@ -10,7 +10,7 @@ vault kv put secret/grafana-mimir/app/configuration \
   common_storage_bucket_name="changeme" \
   alertmanager_storage_bucket_name="changeme" \
   ruler_storage_bucket_name="changeme" \
-  endpoint="nyc3.digitaloceanspaces.com" \
+  endpoint="minio.minio-tenant.svc.cluster.local:443" \
   access_key_id="changeme" \
   secret_access_key="changeme"
 ```
