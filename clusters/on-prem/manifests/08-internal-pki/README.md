@@ -81,17 +81,16 @@ vault write pki_int/config/urls \
 
 ### 13. Create roles for different services
 ```bash
-vault write pki_int/roles/kubernetes-services \
-    allowed_domains="svc.cluster.local,cluster.local,harbor-*" \
+vault write pki_int/roles/kubernetes-system \
+    allowed_domains="svc.cluster.local" \
     allow_subdomains=true \
-    allow_glob_domains=true \
-    allow_bare_domains=true \
+    allow_bare_domains=false \
     server_flag=true \
     client_flag=true \
     max_ttl="8760h" \
     ttl="720h"
 ```
-> **Note:** Role for Kubernetes services (MinIO, Harbor, etc.).
+> **Note:** Role for Kubernetes system services.
 
 ### 14. Create policies for cert-manager to issue certificates
 ```bash
