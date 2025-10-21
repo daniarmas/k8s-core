@@ -79,18 +79,21 @@ vault write pki_int/config/urls \
     crl_distribution_points="http://vault.vault.svc.cluster.local:8200/v1/pki_int/crl"
 ```
 
-### 13. Create roles for different services
+### 13. Create a role for kubernetes services
 ```bash
-vault write pki_int/roles/kubernetes-system \
+vault write pki_int/roles/kubernetes-services \
     allowed_domains="svc.cluster.local" \
     allow_subdomains=true \
     allow_bare_domains=false \
+    use_csr_common_name=true \
+    use_csr_sans=true \
+    require_cn=false \
     server_flag=true \
     client_flag=true \
     max_ttl="8760h" \
     ttl="720h"
 ```
-> **Note:** Role for Kubernetes system services.
+> **Note:** Role for general Kubernetes services. Allows certificates for any service in the cluster.
 
 ### 14. Create policies for cert-manager to issue certificates
 ```bash
