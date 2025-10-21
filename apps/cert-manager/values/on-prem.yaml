@@ -1,0 +1,55 @@
+crds:
+  enabled: true
+
+# Controller (main cert-manager component)
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+replicaCount: 2
+
+# Webhook component for admission control
+webhook:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# CA Injector component for CA bundle injection
+cainjector:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# Pod Disruption Budget for HA
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Anti-affinity for controller
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: cert-manager
+          app.kubernetes.io/component: controller
+      topologyKey: "kubernetes.io/hostname"
+
+# Leader election settings for HA
+extraArgs:
+- --leader-election-lease-duration=15s
+- --leader-election-renew-deadline=10s
+- --leader-election-retry-period=2s

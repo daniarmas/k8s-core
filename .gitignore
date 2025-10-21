@@ -1,0 +1,27 @@
+# VS Code
+.vscode/
+.history/
+.settings/
+*.code-workspace
+
+# Node.js (if using)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Python (if using)
+__pycache__/
+*.pyc
+*.pyo
+
+# MacOS
+.DS_Store
+
+# Others
+.idea/
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# macOS files
+.DS_Store

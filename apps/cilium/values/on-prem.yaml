@@ -1,0 +1,114 @@
+cluster:
+  id: 1
+  name: on-premise
+  serviceCIDR: 10.43.0.0/16
+
+k8sServicePort: 6443
+
+clustermesh:
+  apiserver:
+    enabled: true
+
+k8sClientExponentialBackoff:
+  enabled: true
+
+gatewayAPI:
+  enabled: false
+  gatewayController:
+    enabled: false
+
+kubeProxyReplacement: "true"
+
+ipam:
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4PodCIDRList:
+    - 10.10.0.0/16
+    clusterPoolIPv4MaskSize: 24
+
+l7Proxy: true
+
+# Add proxy configuration to exclude system traffic
+proxy:
+  # Exclude Kubernetes API and system services from L7 inspection
+  prometheusPort: 9964
+  # Exclude system interfaces
+  excludeInterfaces:
+  - cilium_host
+  - cilium_net
+  - lxc+
+  - docker+
+  # Exclude service CIDR from L7 processing
+  excludeCIDRs:
+  - 10.43.0.0/16    # Service CIDR (includes Kubernetes API)
+  - 127.0.0.0/8     # Loopback
+
+# Ensure direct routing for system services
+enableIPv4Masquerade: true
+
+# Exclude kube-system and system services from policy enforcement
+policyEnforcementMode: "default"
+
+l2announcements:
+  enabled: true
+  
+hubble:
+  enabled: true
+  tls:
+    enabled: true
+    auto:
+      enabled: true
+      method: helm # Switch to 'certmanager' if using cert-manager
+  relay:
+    enabled: true
+    replicas: 2 # Increased for HA
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    tolerations:
+    - operator: Exists
+  ui:
+    enabled: true
+    replicas: 2 # Increased for HA
+    service:
+      type: ClusterIP
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    tolerations:
+    - operator: Exists
+
+nodePort:
+  enabled: true
+  
+operator:
+  replicas: 3 # Already good for HA
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Additional HA configurations
+rolloutCiliumPods: true
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 2
+
+# Enable monitoring
+prometheus:
+  enabled: true
+  port: 9962
+  serviceMonitor:
+    enabled: false # Set to true if using Prometheus Operator

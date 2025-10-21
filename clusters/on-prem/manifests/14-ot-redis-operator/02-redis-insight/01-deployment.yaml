@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-insight-pvc
+  namespace: redis-operator
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-insight
+  namespace: redis-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-insight
+  template:
+    metadata:
+      labels:
+        app: redis-insight
+    spec:
+      initContainers:
+      - name: fix-permissions
+        image: busybox
+        command: [ "sh", "-c", "mkdir -p /data/logs /data/redisinsight && chmod -R 777 /data" ]
+        volumeMounts:
+        - name: redis-insight-data
+          mountPath: /data
+      containers:
+      - name: redis-insight
+        image: redislabs/redisinsight:latest
+        ports:
+        - containerPort: 5540
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        livenessProbe:
+          httpGet:
+            path: /api/health/
+            port: 5540
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health/
+            port: 5540
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: redis-insight-data
+          mountPath: /data
+      volumes:
+      - name: redis-insight-data
+        persistentVolumeClaim:
+          claimName: redis-insight-pvc
+      - name: ri-connections
+        configMap:
+          name: redisinsight-connections
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-insight
+  namespace: redis-operator
+spec:
+  type: ClusterIP
+  selector:
+    app: redis-insight
+  ports:
+  - port: 5540
+    targetPort: 5540

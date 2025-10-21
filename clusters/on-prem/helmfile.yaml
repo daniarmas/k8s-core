@@ -1,0 +1,72 @@
+helmfiles:
+- path: ../../apps/cilium/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/cert-manager/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/longhorn/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/vault/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/vault-secrets-operator/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/cnpg/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/ingress-nginx/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/metallb/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/ot-redis-operator/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/oauth2-proxy/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/harbor/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/grafana-mimir/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/grafana-loki/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/grafana-alloy/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/prometheus/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/prometheus-crds/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/grafana-operator/helmfile.yaml
+  values:
+  - environment: on-prem
+
+- path: ../../apps/minio/helmfile.yaml
+  values:
+  - environment: on-prem

@@ -1,0 +1,36 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: mimir-internal-tls
+  namespace: grafana-mimir
+spec:
+  secretName: mimir-internal-tls
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  commonName: grafana-mimir.svc.cluster.local
+  dnsNames:
+  # Full FQDNs
+  - distributor.grafana-mimir.svc.cluster.local
+  - ingester.grafana-mimir.svc.cluster.local
+  - querier.grafana-mimir.svc.cluster.local
+  - query-frontend.grafana-mimir.svc.cluster.local
+  - compactor.grafana-mimir.svc.cluster.local
+  - ruler.grafana-mimir.svc.cluster.local
+  - alertmanager.grafana-mimir.svc.cluster.local
+  
+  # Bare hostnames (for in-namespace communication)
+  # - distributor
+  # - ingester
+  # - querier
+  # - query-frontend
+  # - compactor
+  # - ruler
+  # - alertmanager
+  duration: 8760h
+  renewBefore: 720h
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+  - client auth

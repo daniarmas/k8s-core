@@ -1,0 +1,31 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: cilium-gateway
+  namespace: default
+  annotations:
+    service.cilium.io/lb-ipam-ips: "172.30.0.200"
+spec:
+  gatewayClassName: cilium
+  listeners:
+  # HTTP listener (for redirect to HTTPS)
+  - name: http
+    port: 80
+    protocol: HTTP
+    hostname: "*.home.daniel-enrique.com"
+    allowedRoutes:
+      namespaces:
+        from: All
+  # HTTPS listener with TLS termination
+  - name: https
+    port: 443
+    protocol: HTTPS
+    hostname: "*.home.daniel-enrique.com"  # Wildcard hostname
+    allowedRoutes:
+      namespaces:
+        from: All
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: wildcard-home-tls
+        namespace: default

@@ -1,0 +1,12 @@
+repositories:
+  - name: harbor
+    url: https://helm.goharbor.io
+
+releases:
+  - name: harbor
+    namespace: harbor
+    createNamespace: true
+    chart: harbor/harbor
+    version: ~1.18.0
+    values:
+      - values/{{ .Values.environment | default .Environment.Name }}.yaml

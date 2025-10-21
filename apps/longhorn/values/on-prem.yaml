@@ -1,0 +1,35 @@
+# apps/longhorn/values/on-prem.yaml - COMPLETE WORKING CONFIG
+defaultSettings:
+  backupTarget: ""
+  backupTargetCredentialSecret: ""
+  createDefaultDiskLabeledNodes: true
+  defaultDataPath: "/var/lib/longhorn/"
+  replicaSoftAntiAffinity: true
+  storageOverProvisioningPercentage: 200
+  storageMinimalAvailablePercentage: 10
+  upgradeChecker: false
+  defaultReplicaCount: 3
+
+persistence:
+  defaultClass: true
+  defaultClassReplicaCount: 3
+  reclaimPolicy: Retain
+
+csi:
+  kubeletRootDir: "/var/lib/kubelet"
+
+image:
+  longhorn:
+    engine:
+      tag: v1.9.0
+    manager:
+      tag: v1.9.0
+    ui:
+      tag: v1.9.0
+
+service:
+  ui:
+    type: ClusterIP
+
+ingress:
+  enabled: false

@@ -1,0 +1,14 @@
+repositories:
+  - name: hashicorp
+    url: https://helm.releases.hashicorp.com
+
+releases:
+  - name: vault
+    namespace: vault
+    createNamespace: true
+    chart: hashicorp/vault
+    version: 0.30.0
+    wait: false
+    timeout: 600
+    values:
+      - values/{{ .Values.environment | default .Environment.Name }}.yaml
