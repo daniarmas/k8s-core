@@ -2,6 +2,10 @@
 
 This internal PKI setup leverages cert-manager and HashiCorp Vault to automate certificate management and secure secret storage within the Kubernetes cluster. cert-manager handles certificate issuance and renewal, while Vault provides a robust backend for storing and managing cryptographic keys and secrets.
 
+## Table of Contents
+- [Installation](#installation)
+- [Verification](#verification)
+
 ## Installation
 
 ### 1. Enable a root PKI at path "pki" (20 years max TTL)
@@ -158,3 +162,56 @@ $(sed 's/^/    /' internal-ca-full-chain.pem)
 EOF
 ```
 > **Note:** This ConfigMap serves as the source of truth for your internal CA bundle.
+
+## Verification
+
+### Verify PKI Setup
+```bash
+# Check root CA
+vault read pki/issuer/root-2024
+
+# Check intermediate CA
+vault read pki_int/issuer/default
+
+# List roles
+vault list pki_int/roles
+
+# Verify cert-manager can authenticate
+kubectl get clusterissuer vault-issuer -o yaml
+```
+
+### Test Certificate Issuance
+```bash
+# Create a test certificate
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: test-certificate
+  namespace: default
+spec:
+  secretName: test-certificate-tls
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  dnsNames:
+  - test.default.svc.cluster.local
+  duration: 2160h  # 90 days
+  renewBefore: 360h  # 15 days before expiry
+EOF
+
+# Check certificate status
+kubectl describe certificate test-certificate -n default
+
+# Verify the certificate was issued
+kubectl get secret test-certificate-tls -n default
+
+# Inspect the certificate
+kubectl get secret test-certificate-tls -n default -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -text -noout
+```
+
+### Clean Up Test Certificate
+```bash
+kubectl delete certificate test-certificate -n default
+kubectl delete secret test-certificate-tls -n default
+```
