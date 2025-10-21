@@ -117,22 +117,7 @@ vault write auth/kubernetes/role/cert-manager \
     max_ttl=24h
 ```
 
-### 17. Create the service account token secret for cert-manager
-```bash
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cert-manager-vault-token
-  namespace: cert-manager
-  annotations:
-    kubernetes.io/service-account.name: cert-manager
-type: kubernetes.io/service-account-token
-EOF
-```
-> **Note:** This secret provides the Kubernetes service account token that cert-manager uses to authenticate with Vault.
-
-### 18. Create the ClusterIssuer
+### 16. Create the ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -147,9 +132,8 @@ spec:
       kubernetes:
         mountPath: /v1/auth/kubernetes
         role: cert-manager
-        secretRef:
-          name: cert-manager-vault-token
-          key: token
+        serviceAccountRef:
+          name: cert-manager
 EOF
 ```
 
