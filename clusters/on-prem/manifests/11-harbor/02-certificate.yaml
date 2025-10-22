@@ -6,16 +6,16 @@ metadata:
 spec:
   secretName: harbor-internal-tls
   issuerRef:
-    name: vault-issuer
+    name: vault-harbor
     kind: ClusterIssuer
-  commonName: core.harbor.svc.cluster.local
+  commonName: harbor-core.harbor.svc.cluster.local
   dnsNames:
-  # Full FQDNs
-  - core.harbor.svc.cluster.local
-  - registry.harbor.svc.cluster.local
-  - portal.harbor.svc.cluster.local
-  - jobservice.harbor.svc.cluster.local
-  - trivy.harbor.svc.cluster.local
+  # Full FQDNs - MUST match what's in Vault role!
+  - harbor-core.harbor.svc.cluster.local
+  - harbor-registry.harbor.svc.cluster.local
+  - harbor-portal.harbor.svc.cluster.local
+  - harbor-jobservice.harbor.svc.cluster.local
+  - harbor-trivy.harbor.svc.cluster.local
   
   # Bare hostnames (for in-namespace communication)
   - harbor-core
