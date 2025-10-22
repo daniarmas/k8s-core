@@ -166,14 +166,13 @@ EOF
 ```
 > **Note:** Currently using HTTP for Vault communication. For production, configure Vault with TLS and update this to use `https://` with a `caBundle`.
 
-### 18. Create the MinIO Issuer
+### 18. Create the MinIO ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
-kind: Issuer
+kind: ClusterIssuer
 metadata:
   name: vault-minio
-  namespace: minio-tenant
 spec:
   vault:
     server: http://vault.vault.svc.cluster.local:8200
@@ -186,7 +185,7 @@ spec:
           name: cert-manager
 EOF
 ```
-> **Note:** Namespace-specific Issuer for MinIO. Uses the minio PKI role which restricts certificates to MinIO domains only.
+> **Note:** ClusterIssuer for MinIO certificates. Uses the minio PKI role which restricts certificates to MinIO-specific domains.
 
 ### 19. Combine Intermediate and Root CA Certificates
 ```bash
@@ -238,7 +237,7 @@ metadata:
 spec:
   secretName: test-certificate-tls
   issuerRef:
-    name: vault-issuer
+    name: vault-minio
     kind: ClusterIssuer
   dnsNames:
   - test.default.svc.cluster.local
