@@ -116,7 +116,23 @@ vault write pki_int/roles/minio \
 ```
 > **Note:** Role for MinIO services. Allows certificates only for MinIO-specific domains.
 
-### 15. Create policies for cert-manager to issue certificates
+### 15. Create a role for harbor services
+```bash
+vault write pki_int/roles/harbor \
+    allowed_domains="harbor.svc.cluster.local,harbor-core.harbor.svc.cluster.local,harbor-registry.harbor.svc.cluster.local,harbor-portal.harbor.svc.cluster.local,harbor-jobservice.harbor.svc.cluster.local,harbor-trivy.harbor.svc.cluster.local,harbor-core,harbor-registry,harbor-portal,harbor-jobservice,harbor-trivy" \
+    allow_subdomains=false \
+    allow_bare_domains=true \
+    use_csr_common_name=true \
+    use_csr_sans=true \
+    require_cn=false \
+    server_flag=true \
+    client_flag=true \
+    max_ttl="8760h" \
+    ttl="720h"
+```
+> **Note:** Role for Harbor services. Allows certificates only for Harbor-specific domains.
+
+### 16. Create policies for cert-manager to issue certificates
 ```bash
 vault policy write cert-manager - <<EOF
 path "pki_int/sign/kubernetes-services" {
@@ -132,10 +148,17 @@ path "pki_int/sign/minio" {
 path "pki_int/issue/minio" {
   capabilities = ["create"]
 }
+# Harbor-specific role
+path "pki_int/sign/harbor" {
+  capabilities = ["create", "update"]
+}
+path "pki_int/issue/harbor" {
+  capabilities = ["create"]
+}
 EOF
 ```
 
-### 16. Create Kubernetes authentication role for cert-manager
+### 17. Create Kubernetes authentication role for cert-manager
 ```bash
 vault write auth/kubernetes/role/cert-manager \
     bound_service_account_names=cert-manager \
@@ -145,7 +168,7 @@ vault write auth/kubernetes/role/cert-manager \
     max_ttl=24h
 ```
 
-### 17. Create the ClusterIssuer
+### 18. Create the ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -166,7 +189,7 @@ EOF
 ```
 > **Note:** Currently using HTTP for Vault communication. For production, configure Vault with TLS and update this to use `https://` with a `caBundle`.
 
-### 18. Create the MinIO ClusterIssuer
+### 19. Create the MinIO ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -186,6 +209,27 @@ spec:
 EOF
 ```
 > **Note:** ClusterIssuer for MinIO certificates. Uses the minio PKI role which restricts certificates to MinIO-specific domains.
+
+### 20. Create the Harbor ClusterIssuer
+```bash
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: vault-harbor
+spec:
+  vault:
+    server: http://vault.vault.svc.cluster.local:8200
+    path: pki_int/sign/harbor
+    auth:
+      kubernetes:
+        mountPath: /v1/auth/kubernetes
+        role: cert-manager
+        serviceAccountRef:
+          name: cert-manager
+EOF
+```
+> **Note:** ClusterIssuer for Harbor certificates. Uses the harbor PKI role which restricts certificates to Harbor-specific domains.
 
 ### 19. Combine Intermediate and Root CA Certificates
 ```bash
