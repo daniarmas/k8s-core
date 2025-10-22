@@ -102,9 +102,13 @@ vault write pki_int/roles/kubernetes-services \
 ### 14. Create a role for minio services
 ```bash
 vault write pki_int/roles/minio \
-    allowed_domains="minio.minio-tenant.svc.cluster.local,*.minio-tenant.svc.cluster.local" \
-    allow_subdomains=false \
-    allow_bare_domains=false \
+    allowed_domains="minio-tenant.svc.cluster.local,minio-hl.minio-tenant.svc.cluster.local" \
+    allow_subdomains=true \
+    allow_bare_domains=true \
+    use_csr_common_name=true \
+    use_csr_sans=true \
+    require_cn=false \
+    allow_wildcard_certificates=true \
     server_flag=true \
     client_flag=true \
     max_ttl="8760h" \
