@@ -7,6 +7,10 @@ helmfiles:
   values:
   - environment: on-prem
 
+- path: ../../apps/trust-manager/helmfile.yaml
+  values:
+  - environment: on-prem
+
 - path: ../../apps/longhorn/helmfile.yaml
   values:
   - environment: on-prem
