@@ -63,11 +63,23 @@ global:
       name: grafana-mimir-app
   # -- Common volumes to add to all pods directly managed by this chart.
   # scope: admin-api, alertmanager, compactor, continuous-test, distributor, gateway, graphite-proxy, ingester, memcached, nginx, overrides-exporter, querier, query-frontend, query-scheduler, ruler, store-gateway, smoke-test, tokengen, federation-frontend
-  extraVolumes: []
+  extraVolumes:
+    - name: tls-certs
+      secret:
+        secretName: internal-tls
+    - name: ca-bundle
+      secret:
+        secretName: internal-ca-bundle
 
   # -- Common mount points to add to all pods directly managed by this chart.
   # scope: admin-api, alertmanager, compactor, continuous-test, distributor, gateway, graphite-proxy, ingester, memcached, nginx, overrides-exporter, querier, query-frontend, query-scheduler, ruler, store-gateway, smoke-test, tokengen, federation-frontend
-  extraVolumeMounts: []
+  extraVolumeMounts:
+    - name: tls-certs
+      mountPath: /etc/mimir/tls
+      readOnly: true
+    - name: ca-bundle
+      mountPath: /etc/mimir/ca
+      readOnly: true
 
   # -- Pod annotations for all pods directly managed by this chart. Usable for example to associate a version to 'global.extraEnv' and 'global.extraEnvFrom' and trigger a restart of the affected services.
   # scope: admin-api, alertmanager, compactor, distributor, gateway, ingester, memcached, nginx, overrides-exporter, querier, query-frontend, query-scheduler, ruler, store-gateway, tokengen, federation-frontend
@@ -81,7 +93,7 @@ serviceAccount:
   # -- Whether to create a service account or not. In case 'create' is false, do set 'name' to an existing service account name.
   create: true
   # -- Override for the generated service account name.
-  name:
+  name: grafana-mimir-sa
   annotations: {}
   labels: {}
 
@@ -467,17 +479,45 @@ mimir:
   #         http:
   #           insecure_skip_verify: true
   structuredConfig:
+    # Server-side TLS configuration
+    server:
+      http_listen_port: 8080
+      grpc_listen_port: 9095
+      grpc_tls_config:
+        cert_file: /etc/mimir/tls/tls.crt
+        key_file: /etc/mimir/tls/tls.key
+        client_ca_file: /etc/mimir/ca/ca.crt
+        client_auth_type: RequireAndVerifyClientCert
+    # Client-side TLS for internal gRPC communication
+    ingester_client:
+      grpc_client_config:
+        tls_enabled: true
+        tls_cert_path: /etc/mimir/tls/tls.crt
+        tls_key_path: /etc/mimir/tls/tls.key
+        tls_ca_path: /etc/mimir/ca/ca.crt
+        tls_server_name: "mimir-ingester"
+        max_recv_msg_size: 104857600
+        max_send_msg_size: 104857600
+    frontend_worker:
+      grpc_client_config:
+        tls_enabled: true
+        tls_cert_path: /etc/mimir/tls/tls.crt
+        tls_key_path: /etc/mimir/tls/tls.key
+        tls_ca_path: /etc/mimir/ca/ca.crt
+        max_send_msg_size: 419430400
     common:
       storage:
         backend: s3
         s3:
           bucket_name: "${common_storage_bucket_name}"
           endpoint: "${endpoint}"
-          region: "nyc3"
+          region: "us-east-1"
           access_key_id: "${access_key_id}"
           secret_access_key: "${secret_access_key}"
           http:
-            insecure_skip_verify: true
+            insecure_skip_verify: false
+            tls_ca_path: /etc/mimir/ca/ca.crt
+            tls_handshake_timeout: 10s
     compactor:
       # Basic compaction settings
       compaction_interval: 30m
@@ -518,21 +558,23 @@ mimir:
       s3:
         bucket_name: "${alertmanager_storage_bucket_name}"
         endpoint: "${endpoint}"
-        region: "nyc3"
+        region: "us-east-1"
         access_key_id: "${access_key_id}"
         secret_access_key: "${secret_access_key}"
         http:
-          insecure_skip_verify: true
+          insecure_skip_verify: false
+          tls_ca_path: /etc/mimir/ca/ca.crt
     ruler_storage:
       backend: s3
       s3:
         bucket_name: "${ruler_storage_bucket_name}"
         endpoint: "${endpoint}"
-        region: "nyc3"
+        region: "us-east-1"
         access_key_id: "${access_key_id}"
         secret_access_key: "${secret_access_key}"
         http:
-          insecure_skip_verify: true
+          insecure_skip_verify: false
+          tls_ca_path: /etc/mimir/ca/ca.crt
 
 # -- runtimeConfig provides a reloadable runtime configuration. Changing the runtimeConfig doesn't require a restart of all components.
 # For more infromation see https://grafana.com/docs/mimir/latest/configure/about-runtime-configuration/
