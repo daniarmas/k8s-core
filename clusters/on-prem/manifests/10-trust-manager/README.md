@@ -11,3 +11,40 @@ Works alongside cert-manager to provide a consistent trust store for workloads.
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=trust-manager apply
 ```
+
+### 2. Apply the RBAC permissions
+```bash
+kubectl apply -f - <<EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: trust-manager-secrets
+  labels:
+    app.kubernetes.io/name: trust-manager
+rules:
+  # Full secret permissions cluster-wide
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: trust-manager-secrets
+  labels:
+    app.kubernetes.io/name: trust-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: trust-manager-secrets
+subjects:
+  - kind: ServiceAccount
+    name: trust-manager
+    namespace: cert-manager
+EOF
+```
+
+### 3. Apply the bundle resource
+```bash
+kubectl apply -f clusters/on-prem/manifests/10-trust-manager/02-internal-ca-bundle.yaml
+```
