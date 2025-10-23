@@ -69,7 +69,7 @@ global:
         secretName: internal-tls
     - name: ca-bundle
       secret:
-        secretName: internal-ca-bundle
+        secretName: internal-ca-bundle-secret
 
   # -- Common mount points to add to all pods directly managed by this chart.
   # scope: admin-api, alertmanager, compactor, continuous-test, distributor, gateway, graphite-proxy, ingester, memcached, nginx, overrides-exporter, querier, query-frontend, query-scheduler, ruler, store-gateway, smoke-test, tokengen, federation-frontend
