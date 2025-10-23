@@ -132,7 +132,23 @@ vault write pki_int/roles/harbor \
 ```
 > **Note:** Role for Harbor services. Allows certificates only for Harbor-specific domains.
 
-### 16. Create policies for cert-manager to issue certificates
+### 16. Create a role for grafana-mimir services
+```bash
+vault write pki_int/roles/grafana-mimir \
+    allowed_domains="grafana-mimir.svc.cluster.local,mimir-ingester.grafana-mimir.svc.cluster.local,mimir-querier.grafana-mimir.svc.cluster.local,mimir-distributor.grafana-mimir.svc.cluster.local,mimir-query-frontend.grafana-mimir.svc.cluster.local,mimir-compactor.grafana-mimir.svc.cluster.local,mimir-store-gateway.grafana-mimir.svc.cluster.local,mimir-ruler.grafana-mimir.svc.cluster.local,mimir-alertmanager.grafana-mimir.svc.cluster.local,mimir-gateway.grafana-mimir.svc.cluster.local,mimir-ingester,mimir-querier,mimir-distributor,mimir-query-frontend,mimir-compactor,mimir-store-gateway,mimir-ruler,mimir-alertmanager,mimir-gateway" \
+    allow_subdomains=true \
+    allow_bare_domains=true \
+    use_csr_common_name=true \
+    use_csr_sans=true \
+    require_cn=false \
+    server_flag=true \
+    client_flag=true \
+    max_ttl="8760h" \
+    ttl="720h"
+```
+> **Note:** Role for Grafana Mimir services. Allows certificates only for Grafana-Mimir specific domains.
+
+### 17. Create policies for cert-manager to issue certificates
 ```bash
 vault policy write cert-manager - <<EOF
 path "pki_int/sign/kubernetes-services" {
@@ -155,10 +171,17 @@ path "pki_int/sign/harbor" {
 path "pki_int/issue/harbor" {
   capabilities = ["create"]
 }
+# Grafana-Mimir specific role
+path "pki_int/sign/grafana-mimir" {
+  capabilities = ["create", "update"]
+}
+path "pki_int/issue/grafana-mimir" {
+  capabilities = ["create"]
+}
 EOF
 ```
 
-### 17. Create Kubernetes authentication role for cert-manager
+### 18. Create Kubernetes authentication role for cert-manager
 ```bash
 vault write auth/kubernetes/role/cert-manager \
     bound_service_account_names=cert-manager \
@@ -168,7 +191,7 @@ vault write auth/kubernetes/role/cert-manager \
     max_ttl=24h
 ```
 
-### 18. Create the ClusterIssuer
+### 19. Create the ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -189,7 +212,7 @@ EOF
 ```
 > **Note:** Currently using HTTP for Vault communication. For production, configure Vault with TLS and update this to use `https://` with a `caBundle`.
 
-### 19. Create the MinIO ClusterIssuer
+### 20. Create the MinIO ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -210,7 +233,7 @@ EOF
 ```
 > **Note:** ClusterIssuer for MinIO certificates. Uses the minio PKI role which restricts certificates to MinIO-specific domains.
 
-### 20. Create the Harbor ClusterIssuer
+### 21. Create the Harbor ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -231,13 +254,34 @@ EOF
 ```
 > **Note:** ClusterIssuer for Harbor certificates. Uses the harbor PKI role which restricts certificates to Harbor-specific domains.
 
-### 19. Combine Intermediate and Root CA Certificates
+### 22. Create the Grafana Mimir ClusterIssuer
+```bash
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: vault-grafana-mimir
+spec:
+  vault:
+    server: http://vault.vault.svc.cluster.local:8200
+    path: pki_int/sign/grafana-mimir
+    auth:
+      kubernetes:
+        mountPath: /v1/auth/kubernetes
+        role: cert-manager
+        serviceAccountRef:
+          name: cert-manager
+EOF
+```
+> **Note:** ClusterIssuer for Grafana-Mimir certificates. Uses the grafana-mimir PKI role which restricts certificates to Grafana-Mimir specific domains.
+
+### 23. Combine Intermediate and Root CA Certificates
 ```bash
 cat intermediate.cert.pem root-ca.pem > internal-ca-full-chain.pem
 ```
 > **Note:** Certificate chain order: intermediate first, then root. This is the standard order for trust bundles.
 
-### 20. Create the CA Bundle ConfigMap (For trust distribution)
+### 24. Create the CA Bundle ConfigMap (For trust distribution)
 ```bash
 cat << EOF | kubectl apply -f -
 apiVersion: v1
