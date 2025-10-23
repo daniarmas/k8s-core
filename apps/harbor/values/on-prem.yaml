@@ -196,7 +196,7 @@ persistence:
     # Specify the "caBundleSecretName" if the storage service uses a self-signed certificate.
     # The secret must contain keys named "ca.crt" which will be injected into the trust store
     # of registry's containers.
-    caBundleSecretName: harbor-internal-ca
+    caBundleSecretName: internal-ca-bundle-secret
  
     # Specify the type of storage: "filesystem", "azure", "gcs", "s3", "swift",
     # "oss" and fill the information needed in the corresponding section. The type
@@ -396,7 +396,7 @@ enableMigrateHelmHook: false
 
 # The custom ca bundle secret, the secret must contain key named "ca.crt"
 # which will be injected into the trust store for core, jobservice, registry, trivy components
-caBundleSecretName: harbor-internal-ca
+caBundleSecretName: internal-ca-bundle-secret
 
 ## UAA Authentication Options
 # If you're using UAA for authentication behind a self-signed
@@ -585,44 +585,9 @@ core:
   #  requests:
   #    memory: 256Mi
   #    cpu: 100m
-  # ✅ ADD CA bundle volumes and mounts
-  extraVolumes:
-  - name: internal-ca-bundle
-    configMap:
-      name: harbor-internal-ca
-      
-  extraVolumeMounts:
-  - name: internal-ca-bundle
-    mountPath: /etc/ssl/certs/internal-ca-bundle.crt
-    subPath: ca-bundle.crt
-    readOnly: true
-  # ✅ ADD environment variables for S3 and SSL
-  extraEnvVars:
-  # SSL/CA configuration
-  - name: SSL_CERT_DIR
-    value: "/etc/ssl/certs"
-  - name: REQUESTS_CA_BUNDLE
-    value: "/etc/ssl/certs/internal-ca-bundle.crt"
-  - name: CURL_CA_BUNDLE
-    value: "/etc/ssl/certs/internal-ca-bundle.crt"
-    
-  # S3 bucket from harbor-configuration secret
-  - name: REGISTRY_STORAGE_S3_BUCKET
-    valueFrom:
-      secretKeyRef:
-        name: harbor-configuration
-        key: bucket_name
-        
-  # MinIO endpoint - you'll need to add this to harbor-configuration
-  - name: REGISTRY_STORAGE_S3_REGIONENDPOINT
-    valueFrom:
-      secretKeyRef:
-        name: harbor-configuration
-        key: s3_endpoint
-        
-  # Region can be hardcoded or from secret
-  - name: REGISTRY_STORAGE_S3_REGION
-    value: "us-east-1"
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraEnvVars: []
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -764,65 +729,9 @@ registry:
     #  requests:
     #    memory: 256Mi
     #    cpu: 100m
-    # ✅ ADD CA bundle volumes and mounts
-    extraVolumes:
-    - name: internal-ca-bundle
-      configMap:
-        name: harbor-internal-ca
-        
-    extraVolumeMounts:
-    - name: internal-ca-bundle
-      mountPath: /etc/ssl/certs/internal-ca-bundle.crt
-      subPath: ca-bundle.crt
-      readOnly: true
-    
-    # ✅ ADD environment variables for S3 and SSL
-    extraEnvVars:
-    # SSL/CA configuration
-    - name: SSL_CERT_DIR
-      value: "/etc/ssl/certs"
-    - name: REQUESTS_CA_BUNDLE
-      value: "/etc/ssl/certs/internal-ca-bundle.crt"
-    - name: CURL_CA_BUNDLE
-      value: "/etc/ssl/certs/internal-ca-bundle.crt"
-      
-    # S3 configuration
-    - name: REGISTRY_STORAGE_S3_BUCKET
-      valueFrom:
-        secretKeyRef:
-          name: harbor-configuration
-          key: bucket_name
-          
-    - name: REGISTRY_STORAGE_S3_REGIONENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: harbor-configuration
-          key: s3_endpoint
-          
-    - name: REGISTRY_STORAGE_S3_REGION
-      value: "us-east-1"
-      
-    # Additional S3 settings
-    - name: REGISTRY_STORAGE_S3_SECURE
-      value: "true"
-    - name: REGISTRY_STORAGE_S3_SKIPVERIFY
-      value: "false"
-    - name: REGISTRY_STORAGE_S3_V4AUTH
-      value: "true"
-    - name: REGISTRY_STORAGE_S3_FORCEPATHSTYLE
-      value: "true"
-     # ✅ ADD these S3 signature and path settings
-    # - name: REGISTRY_STORAGE_S3_ROOTDIRECTORY
-    #   value: "/docker/registry"
-    # - name: REGISTRY_STORAGE_S3_STORAGEPATH  
-    #   value: "docker/registry"
-    - name: REGISTRY_STORAGE_S3_SIGNATURE_VERSION
-      value: "4"
-    - name: REGISTRY_STORAGE_S3_ACCELERATE
-      value: "false"
-    # ✅ Ensure correct MinIO endpoint format
-    - name: REGISTRY_STORAGE_S3_REGIONENDPOINT
-      value: "https://minio.minio-tenant.svc.cluster.local:443"
+    extraVolumes: []
+    extraVolumeMounts: []
+    extraEnvVars: []
   controller:
     image:
       repository: goharbor/harbor-registryctl
