@@ -1,0 +1,35 @@
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: internal-ca-bundle-configmap
+spec:
+  sources:
+    - configMap:
+        name: "internal-ca-bundle"
+        key: "ca-bundle.crt"
+
+  target:
+    configMap:
+      key: "ca.crt"
+    
+    # Sync to all namespaces
+    namespaceSelector:
+      matchLabels: {}
+---
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: internal-ca-bundle-secret
+spec:
+  sources:
+    - configMap:
+        name: "internal-ca-bundle"
+        key: "ca-bundle.crt"
+
+  target:
+    secret:
+      key: "ca.crt"
+    
+    # Sync to all namespaces
+    namespaceSelector:
+      matchLabels: {}
