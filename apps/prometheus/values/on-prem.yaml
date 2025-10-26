@@ -1466,7 +1466,7 @@ grafana:
       prometheusVersion: "2.40.0"
       httpHeaderName1: "X-Scope-OrgID"
     secureJsonData:
-      httpHeaderValue1: "prometheus"
+      httpHeaderValue1: "onprem"
   - name: Prometheus
     type: prometheus
     url: http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090
@@ -4375,7 +4375,7 @@ prometheus:
         min_backoff: 100ms
         max_backoff: 5s
       headers:
-        X-Scope-OrgID: prometheus
+        X-Scope-OrgID: onprem
     # - url: http://remote1/push
     ## additionalRemoteWrite is appended to remoteWrite
     additionalRemoteWrite: []
