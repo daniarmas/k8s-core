@@ -13,9 +13,9 @@ k8sClientExponentialBackoff:
   enabled: true
 
 gatewayAPI:
-  enabled: false
+  enabled: true
   gatewayController:
-    enabled: false
+    enabled: true
 
 kubeProxyReplacement: "true"
 
@@ -28,40 +28,38 @@ ipam:
 
 l7Proxy: true
 
-# Add proxy configuration to exclude system traffic
 proxy:
-  # Exclude Kubernetes API and system services from L7 inspection
   prometheusPort: 9964
-  # Exclude system interfaces
   excludeInterfaces:
   - cilium_host
   - cilium_net
   - lxc+
   - docker+
-  # Exclude service CIDR from L7 processing
   excludeCIDRs:
-  - 10.43.0.0/16    # Service CIDR (includes Kubernetes API)
-  - 127.0.0.0/8     # Loopback
+  - 10.43.0.0/16
+  - 127.0.0.0/8
 
-# Ensure direct routing for system services
 enableIPv4Masquerade: true
 
-# Exclude kube-system and system services from policy enforcement
 policyEnforcementMode: "default"
 
 l2announcements:
   enabled: true
-  
+
+# ADD THIS - Critical for control plane taints
+tolerations:
+- operator: Exists
+
 hubble:
   enabled: true
   tls:
     enabled: true
     auto:
       enabled: true
-      method: helm # Switch to 'certmanager' if using cert-manager
+      method: helm
   relay:
     enabled: true
-    replicas: 2 # Increased for HA
+    replicas: 2
     resources:
       limits:
         cpu: 1000m
@@ -73,7 +71,7 @@ hubble:
     - operator: Exists
   ui:
     enabled: true
-    replicas: 2 # Increased for HA
+    replicas: 2
     service:
       type: ClusterIP
     resources:
@@ -90,7 +88,7 @@ nodePort:
   enabled: true
   
 operator:
-  replicas: 3 # Already good for HA
+  replicas: 3
   resources:
     limits:
       cpu: 1000m
@@ -98,17 +96,18 @@ operator:
     requests:
       cpu: 100m
       memory: 128Mi
+  # ADD THIS - For operator to run on control planes if needed
+  tolerations:
+  - operator: Exists
 
-# Additional HA configurations
 rolloutCiliumPods: true
 updateStrategy:
   type: RollingUpdate
   rollingUpdate:
     maxUnavailable: 2
 
-# Enable monitoring
 prometheus:
   enabled: true
   port: 9962
   serviceMonitor:
-    enabled: false # Set to true if using Prometheus Operator
+    enabled: false
