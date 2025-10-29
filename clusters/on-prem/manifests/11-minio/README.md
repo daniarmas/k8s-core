@@ -27,20 +27,20 @@ vault kv put secret/s3/minio/app/minio-console-credentials \
 
 ### 4. Create the MinIO API TLS Certificate
 ```bash
-kubectl apply -f clusters/on-prem/manifests/10-minio/02-minio-api-internal-certificate.yaml
+kubectl apply -f clusters/on-prem/manifests/11-minio/02-minio-api-internal-certificate.yaml
 ```
 
 ### 5. Deploy the minio tenant
 ```bash
-kubectl apply -f clusters/on-prem/manifests/10-minio/03-tenant.yaml
+kubectl apply -f clusters/on-prem/manifests/11-minio/03-tenant.yaml
 ```
 
 ### 6. Deploy the minio service
 ```bash
-kubectl apply -f clusters/on-prem/manifests/10-minio/04-minio-service.yaml
+kubectl apply -f clusters/on-prem/manifests/11-minio/04-minio-service.yaml
 ```
 
 ### 7. Deploy the ingresses
 ```bash
-kubectl apply -f clusters/on-prem/manifests/10-minio/05-ingresses.yaml
+kubectl apply -f clusters/on-prem/manifests/11-minio/05-ingresses.yaml
 ```
