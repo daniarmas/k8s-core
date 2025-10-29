@@ -46,5 +46,6 @@ EOF
 
 ### 3. Apply the bundle resource
 ```bash
-kubectl apply -f clusters/on-prem/manifests/10-trust-manager/02-internal-ca-bundle.yaml
+kubectl apply -f clusters/on-prem/manifests/10-trust-manager/01-internal-ca-bundle.yaml
 ```
+> ⚠️ **Dependencies**: helmfile -f clusters/on-prem/helmfile.yaml -l name=prometheus-crds apply
