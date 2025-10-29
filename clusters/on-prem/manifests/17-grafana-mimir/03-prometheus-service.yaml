@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mimir
+  namespace: grafana-mimir  # Replace with actual namespace
+  labels:
+    release: prometheus  # Must match your Prometheus serviceMonitorSelector
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mimir  # Must match Mimir service labels
+  endpoints:
+  - port: http-metrics
+    interval: 30s
+    path: /metrics
