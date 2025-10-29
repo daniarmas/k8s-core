@@ -16,7 +16,34 @@ helmfile -f clusters/on-prem/helmfile.yaml -l name=cert-manager apply
 kubectl apply -f clusters/on-prem/manifests/04-cert-manager/02-cluster-issuer-dns01-letsencrypt.yaml
 ```
 
-### 2. Setup the vaul secrets operator for cert manager
+### 2. Create the DigitalOcean secret
+```bash
+vault kv put secret/cert-manager/digitalocean \
+    access-token="changeme"
+```
+
+### 3. Issue the wildcard certificate
+```bash
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-cert
+  namespace: default
+spec:
+  secretName: wildcard-home-tls  # Must match Gateway certificateRefs
+  issuerRef:
+    name: letsencrypt-prod-dns01
+    kind: ClusterIssuer
+  dnsNames:
+  - "*.home.daniel-enrique.com"  # Must match Gateway hostname
+  duration: 2160h  # 90 days
+  renewBefore: 720h  # 30 days
+  privateKey:
+    algorithm: RSA
+    size: 2048
+EOF
+```
 
 ## Verify installation 
 Follow the [Cert Manager guide](https://cert-manager.io/docs/installation/kubectl/#verify).
