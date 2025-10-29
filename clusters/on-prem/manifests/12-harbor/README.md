@@ -23,7 +23,7 @@ vault kv put secret/registry/harbor/app/configuration bucket_name="harbor" s3_en
 
 ### 4. Apply the Harbor certificate manifest
 ```bash
-kubectl apply -f clusters/on-prem/manifests/11-harbor/02-certificate.yaml
+kubectl apply -f clusters/on-prem/manifests/12-harbor/02-certificate.yaml
 ```
 
 ### 5. Install Harbor
