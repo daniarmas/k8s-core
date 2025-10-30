@@ -1,0 +1,36 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: node-tls
+  namespace: cockroachdb
+spec:
+  secretName: node-tls
+  issuerRef:
+    name: vault-cockroachdb
+    kind: ClusterIssuer
+  commonName: node
+  dnsNames:
+  # Localhost
+  - localhost
+  # Public service - short name
+  - cockroachdb-public
+  # Public service - with namespace
+  - cockroachdb-public.cockroachdb
+  # Public service - full FQDN
+  - cockroachdb-public.cockroachdb.svc.cluster.local
+  # Wildcard for StatefulSet pods - short name
+  - "*.cockroachdb"
+  # Wildcard for StatefulSet pods - with namespace
+  - "*.cockroachdb.cockroachdb"
+  # Wildcard for StatefulSet pods - full FQDN
+  - "*.cockroachdb.cockroachdb.svc.cluster.local"
+  # Add IP addresses separately
+  ipAddresses:
+  - 127.0.0.1
+  duration: 8760h
+  renewBefore: 720h
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+  - client auth
