@@ -148,7 +148,26 @@ vault write pki_int/roles/grafana-mimir \
 ```
 > **Note:** Role for Grafana Mimir services. Allows certificates only for Grafana-Mimir specific domains.
 
-### 17. Create policies for cert-manager to issue certificates
+### 17. Create a role for cockroachdb services
+```bash
+vault write pki_int/roles/cockroachdb \
+    allowed_domains="localhost,cockroachdb-public,cockroachdb-public.cockroachdb,cockroachdb-public.cockroachdb.svc.cluster.local,cockroachdb,cockroachdb.cockroachdb,cockroachdb.cockroachdb.svc.cluster.local" \
+    allow_subdomains=true \
+    allow_bare_domains=true \
+    allow_localhost=true \
+    allow_ip_sans=true \
+    allow_any_name=true \
+    enforce_hostnames=false \
+    use_csr_common_name=true \
+    use_csr_sans=true \
+    server_flag=true \
+    client_flag=true \
+    max_ttl="8760h" \
+    ttl="8760h"
+```
+> **Note:** Role for CockroachDB services. Allows certificates only for CockroachDB specific domains.
+
+### 18. Create policies for cert-manager to issue certificates
 ```bash
 vault policy write cert-manager - <<EOF
 path "pki_int/sign/kubernetes-services" {
@@ -178,10 +197,17 @@ path "pki_int/sign/grafana-mimir" {
 path "pki_int/issue/grafana-mimir" {
   capabilities = ["create"]
 }
+# CockroachDB specific role
+path "pki_int/sign/cockroachdb" {
+  capabilities = ["create", "update"]
+}
+path "pki_int/issue/cockroachdb" {
+  capabilities = ["create"]
+}
 EOF
 ```
 
-### 18. Create Kubernetes authentication role for cert-manager
+### 19. Create Kubernetes authentication role for cert-manager
 ```bash
 vault write auth/kubernetes/role/cert-manager \
     bound_service_account_names=cert-manager \
@@ -191,7 +217,7 @@ vault write auth/kubernetes/role/cert-manager \
     max_ttl=24h
 ```
 
-### 19. Create the ClusterIssuer
+### 20. Create the ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -212,7 +238,7 @@ EOF
 ```
 > **Note:** Currently using HTTP for Vault communication. For production, configure Vault with TLS and update this to use `https://` with a `caBundle`.
 
-### 20. Create the MinIO ClusterIssuer
+### 21. Create the MinIO ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -233,7 +259,7 @@ EOF
 ```
 > **Note:** ClusterIssuer for MinIO certificates. Uses the minio PKI role which restricts certificates to MinIO-specific domains.
 
-### 21. Create the Harbor ClusterIssuer
+### 22. Create the Harbor ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -254,7 +280,7 @@ EOF
 ```
 > **Note:** ClusterIssuer for Harbor certificates. Uses the harbor PKI role which restricts certificates to Harbor-specific domains.
 
-### 22. Create the Grafana Mimir ClusterIssuer
+### 23. Create the Grafana Mimir ClusterIssuer
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
@@ -275,13 +301,34 @@ EOF
 ```
 > **Note:** ClusterIssuer for Grafana-Mimir certificates. Uses the grafana-mimir PKI role which restricts certificates to Grafana-Mimir specific domains.
 
-### 23. Combine Intermediate and Root CA Certificates
+### 24. Create the CockroachDB ClusterIssuer
+```bash
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: vault-cockroachdb
+spec:
+  vault:
+    server: http://vault.vault.svc.cluster.local:8200
+    path: pki_int/sign/cockroachdb
+    auth:
+      kubernetes:
+        mountPath: /v1/auth/kubernetes
+        role: cert-manager
+        serviceAccountRef:
+          name: cert-manager
+EOF
+```
+> **Note:** ClusterIssuer for Grafana-Mimir certificates. Uses the grafana-mimir PKI role which restricts certificates to Grafana-Mimir specific domains.
+
+### 25. Combine Intermediate and Root CA Certificates
 ```bash
 cat intermediate.cert.pem root-ca.pem > internal-ca-full-chain.pem
 ```
 > **Note:** Certificate chain order: intermediate first, then root. This is the standard order for trust bundles.
 
-### 24. Create the CA Bundle ConfigMap (For trust distribution)
+### 26. Create the CA Bundle ConfigMap (For trust distribution)
 ```bash
 cat << EOF | kubectl apply -f -
 apiVersion: v1
