@@ -177,6 +177,11 @@ vault write auth/oidc/role/root -<<'JSON'
 JSON
 ```
 
+### 7. Apply vault ingress
+```bash
+kubectl apply -f clusters/on-prem/manifests/07-vault/ingress-nginx/ingress.yaml
+```
+
 ## KV Secrets Engine
 
 ### 1. Enable KV Secrets Engine
