@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: api-user-tls
+  namespace: cockroachdb
+spec:
+  secretName: api-user-tls
+  issuerRef:
+    name: vault-cockroachdb
+    kind: ClusterIssuer
+  commonName: api_user
+  duration: 8760h
+  renewBefore: 720h
+  usages:
+  - digital signature
+  - key encipherment
+  - client auth
