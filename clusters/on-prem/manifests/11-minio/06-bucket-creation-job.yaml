@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bucket-creation
+  namespace: minio-tenant
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: mc
+        image: minio/mc:latest
+        env:
+        - name: MINIO_ENDPOINT
+          value: "https://minio.minio-tenant.svc.cluster.local:443"
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-mc-access-keys
+              key: access-key
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-mc-access-keys
+              key: secret-key
+        volumeMounts:
+        - name: ca-bundle
+          mountPath: /etc/ssl/certs/ca-bundle.crt
+          subPath: ca.crt
+          readOnly: true
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Configure mc to use the CA bundle
+          export SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt
+          mc alias set myminio $MINIO_ENDPOINT $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+          mc mb myminio/harbor --ignore-existing
+          mc mb myminio/grafana-mimir-common --ignore-existing
+          mc mb myminio/grafana-mimir-alertmanager --ignore-existing
+          mc mb myminio/grafana-mimir-ruler --ignore-existing
+          mc mb myminio/grafana-loki-chunks --ignore-existing
+          mc mb myminio/grafana-loki-admin --ignore-existing
+          mc mb myminio/grafana-loki-ruler --ignore-existing
+          mc mb myminio/cockroachdb --ignore-existing
+          echo "Buckets created successfully"
+      volumes:
+      - name: ca-bundle
+        secret:
+          secretName: internal-ca-bundle-secret

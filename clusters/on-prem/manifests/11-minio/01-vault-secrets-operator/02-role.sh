@@ -8,3 +8,15 @@ vault write auth/kubernetes/role/minio-app \
     bound_service_account_namespaces=minio-tenant \
     policies=minio-app \
     ttl=24h
+
+vault write auth/kubernetes/role/minio-mc \
+    bound_service_account_names=minio-vault-sa \
+    bound_service_account_namespaces=minio-tenant \
+    policies=minio-mc-accesskeys \
+    ttl=24h
+
+vault write auth/kubernetes/role/minio-admin \
+  bound_service_account_names=minio-vault-manager \
+  bound_service_account_namespaces=minio-tenant \
+  policies=minio-admin \
+  ttl=1h

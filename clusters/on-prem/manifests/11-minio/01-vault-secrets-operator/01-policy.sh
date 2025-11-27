@@ -3,6 +3,16 @@ set -e
 
 export VAULT_ADDR=http://127.0.0.1:8200
 
+vault policy write minio-admin - <<EOF
+# Allow full access to minio secrets
+path "secret/data/s3/minio/*" {
+  capabilities = ["create", "update"]
+}
+path "secret/metadata/s3/minio/*" {
+  capabilities = ["read", "list"]
+}
+EOF
+
 vault policy write minio-app - <<EOF
 # Allow reading minio secrets
 path "secret/data/s3/minio/app/*" {
@@ -11,6 +21,26 @@ path "secret/data/s3/minio/app/*" {
 
 path "secret/metadata/s3/minio/app/*" {
   capabilities = ["read", "list"]
+}
+
+# Allow token operations
+path "auth/token/lookup-self" {
+  capabilities = ["read"]
+}
+
+path "auth/token/renew-self" {
+  capabilities = ["update"]
+}
+EOF
+
+vault policy write minio-mc-accesskeys - <<EOF
+# Allow reading minio secrets
+path "secret/data/s3/minio/access-keys/minio-mc" {
+  capabilities = ["read"]
+}
+
+path "secret/metadata/s3/minio/access-keys/minio-mc" {
+  capabilities = ["read"]
 }
 
 # Allow token operations
