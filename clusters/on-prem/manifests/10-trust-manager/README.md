@@ -7,12 +7,18 @@ Works alongside cert-manager to provide a consistent trust store for workloads.
 
 ## Installation
 
-### 1. Install Trust-Manager
+### 1. Install Prometheus CRDs
+```bash
+helmfile -f clusters/on-prem/helmfile.yaml -l name=prometheus-crds apply
+```
+> ⚠️ **Dependencies**: Prometheus CRDs are needed
+
+### 2. Install Trust-Manager
 ```bash
 helmfile -f clusters/on-prem/helmfile.yaml -l name=trust-manager apply
 ```
 
-### 2. Apply the RBAC permissions
+### 3. Apply the RBAC permissions
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: rbac.authorization.k8s.io/v1
@@ -44,8 +50,7 @@ subjects:
 EOF
 ```
 
-### 3. Apply the bundle resource
+### 4. Apply the bundle resource
 ```bash
 kubectl apply -f clusters/on-prem/manifests/10-trust-manager/01-internal-ca-bundle.yaml
 ```
-> ⚠️ **Dependencies**: helmfile -f clusters/on-prem/helmfile.yaml -l name=prometheus-crds apply
