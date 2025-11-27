@@ -44,3 +44,23 @@ spec:
 
     # Service account minio uses
     serviceAccount: "minio-vault-sa"
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: minio-mc
+  namespace: minio-tenant
+spec:
+  # Reference to the VaultConnection in the same namespace
+  vaultConnectionRef: default
+
+  # Kubernetes authentication method
+  method: kubernetes
+  mount: kubernetes
+
+  kubernetes:
+    # Role configured in Vault for minio
+    role: "minio-mc"
+
+    # Service account minio uses
+    serviceAccount: "minio-vault-sa"
