@@ -1,0 +1,240 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cockroachdb-init-script
+  namespace: cockroachdb
+data:
+  init-users.sql: |
+    -- CockroachDB User Setup Script
+    -- This script will be executed by the Kubernetes Job
+
+    -- Create application database
+    CREATE DATABASE IF NOT EXISTS myapp_db;
+
+    -- Create users
+    CREATE USER IF NOT EXISTS api_user WITH PASSWORD '${API_USER_PASSWORD}';
+    CREATE USER IF NOT EXISTS readonly_user WITH PASSWORD '${READONLY_USER_PASSWORD}';
+    CREATE USER IF NOT EXISTS admin_user WITH PASSWORD '${ADMIN_USER_PASSWORD}';
+
+    -- Grant permissions to api_user (ALL grants CREATE, DROP, SELECT, INSERT, UPDATE, DELETE on future tables)
+    GRANT ALL ON DATABASE myapp_db TO api_user;
+
+    -- Grant CONNECT to readonly_user (they can use the database)
+    GRANT CONNECT ON DATABASE myapp_db TO readonly_user;
+
+    -- Grant default privileges so readonly_user gets SELECT on future tables
+    ALTER DEFAULT PRIVILEGES FOR ALL ROLES IN SCHEMA public GRANT SELECT ON TABLES TO readonly_user;
+
+    -- Grant admin privileges (ALL + GRANT OPTION)
+    GRANT ALL ON DATABASE myapp_db TO admin_user WITH GRANT OPTION;
+    ALTER DEFAULT PRIVILEGES FOR ALL ROLES IN SCHEMA public GRANT ALL ON TABLES TO admin_user;
+
+    -- Set connection limits (these are cluster-level settings in CockroachDB, not per-user)
+    -- CockroachDB v23.2 doesn't support per-user connection limits the same way PostgreSQL does
+    -- Use connection pooling in your application instead
+
+    -- Enable security logging
+    SET CLUSTER SETTING server.auth_log.sql_connections.enabled = true;
+    SET CLUSTER SETTING server.auth_log.sql_sessions.enabled = true;
+    SET CLUSTER SETTING sql.log.slow_query.latency_threshold = '100ms';
+
+    -- Show created users
+    SHOW USERS;
+
+    -- Show grants
+    SHOW GRANTS ON DATABASE myapp_db;
+
+    -- Verification
+    SELECT 'Database setup completed successfully!' AS status;
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cockroachdb-user-passwords
+  namespace: cockroachdb
+type: Opaque
+stringData:
+  api-user-password: "changeme_api_password_123"
+  readonly-user-password: "changeme_readonly_password_123"
+  admin-user-password: "changeme_admin_password_123"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cockroachdb-user-setup
+  namespace: cockroachdb
+  labels:
+    app: cockroachdb
+    component: user-setup
+spec:
+  # Retry up to 3 times if job fails
+  backoffLimit: 3
+
+  # Clean up completed jobs after 1 hour
+  ttlSecondsAfterFinished: 3600
+
+  template:
+    metadata:
+      labels:
+        app: cockroachdb
+        component: user-setup
+    spec:
+      restartPolicy: OnFailure
+
+      # Use the official CockroachDB image
+      containers:
+      - name: cockroach-init
+        image: cockroachdb/cockroach:v23.2.0
+
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+
+          echo "🚀 Starting CockroachDB user setup..."
+          echo "Target: ${COCKROACH_HOST}:${COCKROACH_PORT}"
+          echo "Certs dir: ${CERTS_DIR}"
+                    
+          # CockroachDB expects specific cert file names
+          # Copy and rename certificates to expected names
+          mkdir -p /tmp/cockroach-certs
+          cp ${CERTS_DIR}/ca.crt /tmp/cockroach-certs/ca.crt
+          cp ${CERTS_DIR}/tls.crt /tmp/cockroach-certs/client.root.crt
+          cp ${CERTS_DIR}/tls.key /tmp/cockroach-certs/client.root.key
+          chmod 0600 /tmp/cockroach-certs/client.root.key
+
+          # Debug: List certificates
+          echo "🔍 Certificate files:"
+          ls -la /tmp/cockroach-certs/
+
+          # Update certs directory to use renamed certs
+          export CERTS_DIR="/tmp/cockroach-certs"
+
+          # Wait for CockroachDB to be ready
+          echo "⏳ Waiting for CockroachDB to be ready..."
+          for i in {1..30}; do
+            if cockroach sql \
+              --host=${COCKROACH_HOST}:${COCKROACH_PORT} \
+              --certs-dir=${CERTS_DIR} \
+              --execute="SELECT 1;" > /dev/null 2>&1; then
+              echo "✅ CockroachDB is ready!"
+              break
+            fi
+            echo "Attempt $i/30: Waiting for database..."
+             if [ $i -eq 30 ]; then
+               echo "❌ Failed to connect after 30 attempts"
+               echo "🔍 Debug info:"
+               cockroach sql --host=${COCKROACH_HOST}:${COCKROACH_PORT} --certs-dir=${CERTS_DIR} --execute="SELECT 1;" || true
+               exit 1
+            fi
+            sleep 5
+          done
+
+          # Replace password placeholders in SQL script
+          echo "🔑 Preparing SQL script with passwords..."
+          sed "s/\${API_USER_PASSWORD}/${API_USER_PASSWORD}/g; \
+               s/\${READONLY_USER_PASSWORD}/${READONLY_USER_PASSWORD}/g; \
+               s/\${ADMIN_USER_PASSWORD}/${ADMIN_USER_PASSWORD}/g" \
+               /scripts/init-users.sql > /tmp/init-users-final.sql
+
+          # Execute the SQL script
+          echo "📝 Executing user setup script..."
+          cockroach sql \
+            --host=${COCKROACH_HOST}:${COCKROACH_PORT} \
+            --certs-dir=${CERTS_DIR} \
+            --file=/tmp/init-users-final.sql
+
+          # Store connection strings in a ConfigMap (optional)
+          if [ "${SAVE_CONNECTION_STRINGS}" = "true" ]; then
+            echo "💾 Creating connection strings ConfigMap..."
+            
+            API_CONN_STRING="postgresql://api_user:${API_USER_PASSWORD}@${COCKROACH_HOST}:${COCKROACH_PORT}/${DATABASE_NAME}?sslmode=require"
+            READONLY_CONN_STRING="postgresql://readonly_user:${READONLY_USER_PASSWORD}@${COCKROACH_HOST}:${COCKROACH_PORT}/${DATABASE_NAME}?sslmode=require"
+            ADMIN_CONN_STRING="postgresql://admin_user:${ADMIN_USER_PASSWORD}@${COCKROACH_HOST}:${COCKROACH_PORT}/${DATABASE_NAME}?sslmode=require"
+            
+            cat <<EOF | kubectl apply -f -
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: cockroachdb-connection-info
+              namespace: cockroachdb
+            data:
+              database-name: "${DATABASE_NAME}"
+              database-host: "${COCKROACH_HOST}"
+              database-port: "${COCKROACH_PORT}"
+              api-user: "api_user"
+              readonly-user: "readonly_user"
+              admin-user: "admin_user"
+          EOF
+          fi
+
+          echo "✅ Database user setup completed successfully!"
+          echo "📋 Users created: api_user, readonly_user, admin_user"
+          echo "🎉 Job finished!"
+
+        env:
+        # CockroachDB connection settings
+        - name: COCKROACH_HOST
+          value: "cockroachdb-public" # Update with your service name
+        - name: COCKROACH_PORT
+          value: "26257"
+        - name: DATABASE_NAME
+          value: "myapp_db"
+        - name: CERTS_DIR
+          value: "/cockroach-certs"
+
+        # User passwords from Secret
+        - name: API_USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cockroachdb-user-passwords
+              key: api-user-password
+        - name: READONLY_USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cockroachdb-user-passwords
+              key: readonly-user-password
+        - name: ADMIN_USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cockroachdb-user-passwords
+              key: admin-user-password
+
+        # Optional: Save connection strings
+        - name: SAVE_CONNECTION_STRINGS
+          value: "false"
+
+        volumeMounts:
+        # Mount the SQL script
+        - name: init-script
+          mountPath: /scripts
+          readOnly: true
+
+        # Mount CockroachDB certificates
+        - name: client-certs
+          mountPath: /cockroach-certs
+          readOnly: true
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+
+      volumes:
+      # SQL script from ConfigMap
+      - name: init-script
+        configMap:
+          name: cockroachdb-init-script
+
+      # Client certificates for secure connection
+      - name: client-certs
+        secret:
+          secretName: client-root-tls
+          defaultMode: 400
+      # Optional: Service account for creating ConfigMaps
+      serviceAccountName: cockroachdb-user-setup
