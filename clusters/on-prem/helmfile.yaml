@@ -74,3 +74,7 @@ helmfiles:
 - path: ../../apps/minio/helmfile.yaml
   values:
   - environment: on-prem
+
+- path: ../../apps/k8s-monitoring/helmfile.yaml
+  values:
+  - environment: on-prem

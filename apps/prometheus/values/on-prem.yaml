@@ -4105,7 +4105,8 @@ prometheus:
 
     ## enable --web.enable-remote-write-receiver flag on prometheus-server
     ##
-    enableRemoteWriteReceiver: false
+    # Enable remote write receiver
+    enableRemoteWriteReceiver: true
 
     ## Name of the external label used to denote replica name
     ##
@@ -4392,7 +4393,16 @@ prometheus:
     ## Prometheus StorageSpec for persistent data
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/platform/storage.md
     ##
-    storageSpec: {}
+    # Your other existing config...
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: longhorn
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    # storageSpec: {}
     ## Using PersistentVolumeClaim
     ##
     #  volumeClaimTemplate:

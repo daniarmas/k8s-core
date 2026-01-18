@@ -515,6 +515,8 @@ mimir:
         head_compaction_idle_timeout: 1h
         # Additional WAL tuning
         wal_compression_enabled: true
+        # Stripe size for better compression
+        stripe_size: 16384
 
       bucket_store:
         # Sync directory for block operations

@@ -1,0 +1,11 @@
+repositories:
+- name: grafana
+  url: https://grafana.github.io/helm-charts
+
+releases:
+- name: k8s-monitoring
+  namespace: monitoring
+  chart: grafana/k8s-monitoring
+  createNamespace: true
+  values:
+  - values/{{ .Values.environment | default .Environment.Name }}.yaml
