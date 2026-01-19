@@ -9,14 +9,17 @@ Harbor is an open-source container registry that secures images with role-based 
 kubectl create namespace harbor
 ```
 
-### 2. Create the Harbor application configuration in Vault
+### 2. Create the S3 credentials in Vault
 ```bash
-vault kv put secret/registry/harbor/app/configuration bucket_name="harbor" s3_endpoint="https://minio.minio-tenant.svc.cluster.local:443" harbor_admin_password="HarborAdmin123\!" secret_key="$SECRET_KEY" csrf_key="$CSRF_KEY" database_password="HarborDB123\!"
+vault kv put secret/registry/harbor/app/s3 \
+  REGISTRY_STORAGE_S3_ACCESSKEY="your-digitalocean-spaces-access-key" \
+  REGISTRY_STORAGE_S3_SECRETKEY="your-digitalocean-spaces-secret-key"
 ```
 
-### 3. Apply the Harbor certificate manifest
+### 3. Create the Harbor admin password in Vault
 ```bash
-kubectl apply -f clusters/on-prem/manifests/12-harbor/02-certificate.yaml
+vault kv put secret/registry/harbor/app/configuration \
+  harbor_admin_password="YourSecurePassword123!"
 ```
 
 ### 4. Install Harbor
