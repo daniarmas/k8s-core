@@ -7,10 +7,6 @@ helmfiles:
   values:
   - environment: on-prem
 
-- path: ../../apps/trust-manager/helmfile.yaml
-  values:
-  - environment: on-prem
-
 - path: ../../apps/longhorn/helmfile.yaml
   values:
   - environment: on-prem
@@ -31,15 +27,7 @@ helmfiles:
   values:
   - environment: on-prem
 
-- path: ../../apps/metallb/helmfile.yaml
-  values:
-  - environment: on-prem
-
 - path: ../../apps/ot-redis-operator/helmfile.yaml
-  values:
-  - environment: on-prem
-
-- path: ../../apps/oauth2-proxy/helmfile.yaml
   values:
   - environment: on-prem
 
@@ -68,10 +56,6 @@ helmfiles:
   - environment: on-prem
 
 - path: ../../apps/grafana-operator/helmfile.yaml
-  values:
-  - environment: on-prem
-
-- path: ../../apps/minio/helmfile.yaml
   values:
   - environment: on-prem
 

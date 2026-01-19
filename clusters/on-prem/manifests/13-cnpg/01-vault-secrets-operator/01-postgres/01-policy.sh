@@ -3,13 +3,13 @@ set -e
 
 export VAULT_ADDR=http://127.0.0.1:8200
 
-vault policy write harbor-postgres - <<EOF
+vault policy write core-api-postgres - <<EOF
 # Allow reading postgres secrets
-path "secret/data/harbor/harbor-postgres" {
+path "secret/data/core-api/postgres" {
   capabilities = ["read"]
 }
 
-path "secret/metadata/harbor/harbor-postgres" {
+path "secret/metadata/core-api/postgres" {
   capabilities = ["read", "list"]
 }
 

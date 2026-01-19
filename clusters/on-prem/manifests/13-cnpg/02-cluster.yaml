@@ -1,8 +1,8 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: harbor
-  namespace: harbor
+  name: postgres
+  namespace: core-api
 spec:
   instances: 3
 
@@ -11,7 +11,7 @@ spec:
       database: app
       owner: app
       secret:
-        name: harbor-postgres
+        name: core-api-postgres
 
   storage:
     size: 2Gi

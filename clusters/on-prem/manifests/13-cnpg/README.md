@@ -6,7 +6,7 @@ CloudNative-PG is a Kubernetes operator that covers the full lifecycle of a Post
 
 ### 1. Create the namespace
 ```bash
-kubectl create namespace harbor
+kubectl create namespace cnpg
 ```
 
 ### 2. Install the operator
@@ -14,16 +14,16 @@ kubectl create namespace harbor
 helmfile -f clusters/on-prem/helmfile.yaml -l name=cnpg apply
 ```
 
-### 3. Create harbor-postgres secret
+### 3. Create core-api-postgres secret
 ```bash
-vault kv put secret/harbor/harbor-postgres username="app" password="changeme"
+vault kv put secret/core-api/postgres username="app" password="changeme"
 ```
 
 ### 4. Setup the vault secrets
 
-### 5. Create the postgresql cluster for harbor
+### 5. Create the postgresql cluster for core-api
 ```bash
-kubectl apply -f clusters/on-prem/manifests/09-cnpg/02-cluster.yaml
+kubectl apply -f clusters/on-prem/manifests/13-cnpg/02-cluster.yaml
 ```
 
 ### 6. Create the pgadmin4 vault secret (replace values)
